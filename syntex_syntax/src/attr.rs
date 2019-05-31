@@ -993,6 +993,10 @@ pub fn find_repr_attrs(diagnostic: &Handler, attr: &Attribute) -> Vec<ReprAttr> 
                                       "invalid `repr(align)` attribute: {}", align_error);
                         }
                     }
+                    if name == "packed" {
+                        recognised = true;
+                        acc.push(ReprPacked);
+                    }
                 }
                 if !recognised {
                     // Not a word we recognize

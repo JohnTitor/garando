@@ -8,6 +8,7 @@ repository = "https://github.com/serde-rs/syntex"
 documentation = "https://docs.rs/syntex_syntax"
 readme = "README.md"
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
+edition = "2015"
 
 [dependencies]
 bitflags = "0.9"

@@ -18,7 +18,6 @@
        html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
        html_root_url = "https://docs.rs/syntex_syntax/0.59.1",
        test(attr(deny(warnings))))]
-#![deny(warnings)]
 
 #[macro_use] extern crate log;
 #[macro_use] extern crate bitflags;
