@@ -958,6 +958,7 @@ pub fn find_repr_attrs(diagnostic: &Handler, attr: &Attribute) -> Vec<ReprAttr> 
                         "C" => Some(ReprExtern),
                         "packed" => Some(ReprPacked),
                         "simd" => Some(ReprSimd),
+                        "transparent" => Some(ReprTransparent),
                         _ => match int_type_of_word(word) {
                             Some(ity) => Some(ReprInt(ity)),
                             None => {
@@ -1034,6 +1035,7 @@ pub enum ReprAttr {
     ReprPacked,
     ReprSimd,
     ReprAlign(u16),
+    ReprTransparent,
 }
 
 #[derive(Eq, Hash, PartialEq, Debug, Serialize, Deserialize, Copy, Clone)]
