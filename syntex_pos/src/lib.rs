@@ -393,8 +393,8 @@ fn serialize_lines<S>(lines: &RefCell<Vec<BytePos>>, serializer: S) -> Result<S:
         };
 
         let bytes_per_diff: u8 = match max_line_length {
-            0 ... 0xFF => 1,
-            0x100 ... 0xFFFF => 2,
+            0 ..= 0xFF => 1,
+            0x100 ..= 0xFFFF => 2,
             _ => 4
         };
 
