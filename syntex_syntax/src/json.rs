@@ -32,9 +32,9 @@ use std::vec;
 use serde_json;
 
 pub struct JsonEmitter {
-    dst: Box<Write + Send>,
+    dst: Box<dyn Write + Send>,
     registry: Option<Registry>,
-    cm: Rc<CodeMapper + 'static>,
+    cm: Rc<dyn CodeMapper + 'static>,
 }
 
 impl JsonEmitter {
@@ -52,7 +52,7 @@ impl JsonEmitter {
         JsonEmitter::stderr(None, Rc::new(CodeMap::new(file_path_mapping)))
     }
 
-    pub fn new(dst: Box<Write + Send>,
+    pub fn new(dst: Box<dyn Write + Send>,
                registry: Option<Registry>,
                code_map: Rc<CodeMap>) -> JsonEmitter {
         JsonEmitter {

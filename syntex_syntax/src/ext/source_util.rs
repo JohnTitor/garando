@@ -32,7 +32,7 @@ use std::rc::Rc;
 
 /// line!(): expands to the current line number
 pub fn expand_line(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
-                   -> Box<base::MacResult+'static> {
+                   -> Box<dyn base::MacResult + 'static> {
     base::check_zero_tts(cx, sp, tts, "line!");
 
     let topmost = cx.expansion_cause().unwrap_or(sp);
@@ -43,7 +43,7 @@ pub fn expand_line(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
 
 /* column!(): expands to the current column number */
 pub fn expand_column(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
-                  -> Box<base::MacResult+'static> {
+                  -> Box<dyn base::MacResult + 'static> {
     base::check_zero_tts(cx, sp, tts, "column!");
 
     let topmost = cx.expansion_cause().unwrap_or(sp);
@@ -56,7 +56,7 @@ pub fn expand_column(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
 /// The filemap (`loc.file`) contains a bunch more information we could spit
 /// out if we wanted.
 pub fn expand_file(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
-                   -> Box<base::MacResult+'static> {
+                   -> Box<dyn base::MacResult + 'static> {
     base::check_zero_tts(cx, sp, tts, "file!");
 
     let topmost = cx.expansion_cause().unwrap_or(sp);
@@ -65,13 +65,13 @@ pub fn expand_file(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
 }
 
 pub fn expand_stringify(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
-                        -> Box<base::MacResult+'static> {
+                        -> Box<dyn base::MacResult + 'static> {
     let s = pprust::tts_to_string(tts);
     base::MacEager::expr(cx.expr_str(sp, Symbol::intern(&s)))
 }
 
 pub fn expand_mod(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
-                  -> Box<base::MacResult+'static> {
+                  -> Box<dyn base::MacResult + 'static> {
     base::check_zero_tts(cx, sp, tts, "module_path!");
     let mod_path = &cx.current_expansion.module.mod_path;
     let string = mod_path.iter().map(|x| x.to_string()).collect::<Vec<String>>().join("::");
@@ -83,7 +83,7 @@ pub fn expand_mod(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
 /// This is generally a bad idea because it's going to behave
 /// unhygienically.
 pub fn expand_include<'cx>(cx: &'cx mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
-                           -> Box<base::MacResult+'cx> {
+                           -> Box<dyn base::MacResult + 'cx> {
     let file = match get_single_str_from_tts(cx, sp, tts, "include!") {
         Some(f) => f,
         None => return DummyResult::expr(sp),
@@ -120,7 +120,7 @@ pub fn expand_include<'cx>(cx: &'cx mut ExtCtxt, sp: Span, tts: &[tokenstream::T
 
 // include_str! : read the given file, insert it as a literal string expr
 pub fn expand_include_str(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
-                          -> Box<base::MacResult+'static> {
+                          -> Box<dyn base::MacResult + 'static> {
     let file = match get_single_str_from_tts(cx, sp, tts, "include_str!") {
         Some(f) => f,
         None => return DummyResult::expr(sp)
@@ -156,7 +156,7 @@ pub fn expand_include_str(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenT
 }
 
 pub fn expand_include_bytes(cx: &mut ExtCtxt, sp: Span, tts: &[tokenstream::TokenTree])
-                            -> Box<base::MacResult+'static> {
+                            -> Box<dyn base::MacResult + 'static> {
     let file = match get_single_str_from_tts(cx, sp, tts, "include_bytes!") {
         Some(f) => f,
         None => return DummyResult::expr(sp)

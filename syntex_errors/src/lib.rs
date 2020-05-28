@@ -108,8 +108,8 @@ impl CodeSuggestion {
     }
 
     /// Returns the assembled code suggestions.
-    pub fn splice_lines(&self, cm: &CodeMapper) -> Vec<String> {
-        use syntax_pos::{CharPos, Loc, Pos};
+    pub fn splice_lines(&self, cm: &dyn CodeMapper) -> Vec<String> {
+        use syntax_pos::{CharPos, Pos};
 
         fn push_trailing(buf: &mut String,
                          line_opt: Option<&str>,
@@ -249,7 +249,7 @@ pub use diagnostic_builder::DiagnosticBuilder;
 /// others log errors for later reporting.
 pub struct Handler {
     err_count: Cell<usize>,
-    emitter: RefCell<Box<Emitter>>,
+    emitter: RefCell<Box<dyn Emitter>>,
     pub can_emit_warnings: bool,
     treat_err_as_bug: bool,
     continue_after_error: Cell<bool>,
@@ -260,7 +260,7 @@ impl Handler {
     pub fn with_tty_emitter(color_config: ColorConfig,
                             can_emit_warnings: bool,
                             treat_err_as_bug: bool,
-                            cm: Option<Rc<CodeMapper>>)
+                            cm: Option<Rc<dyn CodeMapper>>)
                             -> Handler {
         let emitter = Box::new(EmitterWriter::stderr(color_config, cm));
         Handler::with_emitter(can_emit_warnings, treat_err_as_bug, emitter)
@@ -268,7 +268,7 @@ impl Handler {
 
     pub fn with_emitter(can_emit_warnings: bool,
                         treat_err_as_bug: bool,
-                        e: Box<Emitter>)
+                        e: Box<dyn Emitter>)
                         -> Handler {
         Handler {
             err_count: Cell::new(0),
