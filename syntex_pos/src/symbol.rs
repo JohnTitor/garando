@@ -12,7 +12,7 @@
 //! allows bidirectional lookup; i.e. given a value, one can easily find the
 //! type, and vice versa.
 
-use hygiene::SyntaxContext;
+use crate::hygiene::SyntaxContext;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -245,7 +245,7 @@ macro_rules! declare_keywords {(
             pub const $konst: Keyword = Keyword {
                 ident: Ident {
                     name: super::Symbol($index),
-                    ctxt: ::NO_EXPANSION,
+                    ctxt: crate::NO_EXPANSION,
                 }
             };
         )*
