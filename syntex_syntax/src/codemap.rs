@@ -104,7 +104,7 @@ impl FileLoader for RealFileLoader {
 
 pub struct CodeMap {
     pub files: RefCell<Vec<Rc<FileMap>>>,
-    file_loader: Box<FileLoader>,
+    file_loader: Box<dyn FileLoader>,
     // This is used to apply the file path remapping as specified via
     // -Zremap-path-prefix to all FileMaps allocated within this CodeMap.
     path_mapping: FilePathMapping,
@@ -119,7 +119,7 @@ impl CodeMap {
         }
     }
 
-    pub fn with_file_loader(file_loader: Box<FileLoader>,
+    pub fn with_file_loader(file_loader: Box<dyn FileLoader>,
                             path_mapping: FilePathMapping)
                             -> CodeMap {
         CodeMap {
@@ -460,7 +460,7 @@ impl CodeMap {
     pub fn span_until_char(&self, sp: Span, c: char) -> Span {
         match self.span_to_snippet(sp) {
             Ok(snippet) => {
-                let snippet = snippet.split(c).nth(0).unwrap_or("").trim_right();
+                let snippet = snippet.split(c).nth(0).unwrap_or("").trim_end();
                 if !snippet.is_empty() && !snippet.contains('\n') {
                     Span { hi: BytePos(sp.lo.0 + snippet.len() as u32), ..sp }
                 } else {

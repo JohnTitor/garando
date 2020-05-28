@@ -28,7 +28,7 @@ pub struct Ident {
 
 impl Ident {
     pub fn with_empty_ctxt(name: Symbol) -> Ident {
-        Ident { name: name, ctxt: SyntaxContext::empty() }
+        Ident { name, ctxt: SyntaxContext::empty() }
     }
 
     /// Maps a string to an identifier with an empty syntax context.

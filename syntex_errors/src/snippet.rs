@@ -17,7 +17,7 @@ use Level;
 
 #[derive(Clone)]
 pub struct SnippetData {
-    codemap: Rc<CodeMapper>,
+    codemap: Rc<dyn CodeMapper>,
     files: Vec<FileInfo>,
 }
 

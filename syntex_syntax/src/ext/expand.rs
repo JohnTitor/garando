@@ -54,7 +54,7 @@ macro_rules! expansions {
                 }
             }
 
-            fn make_from<'a>(self, result: Box<MacResult + 'a>) -> Option<Expansion> {
+            fn make_from<'a>(self, result: Box<dyn MacResult + 'a>) -> Option<Expansion> {
                 match self {
                     ExpansionKind::OptExpr => result.make_expr().map(Some).map(Expansion::OptExpr),
                     $( ExpansionKind::$kind => result.$make().map(Expansion::$kind), )*

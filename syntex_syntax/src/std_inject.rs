@@ -74,7 +74,7 @@ pub fn maybe_inject_crates_ref(mut krate: ast::Crate, alt_std_name: Option<Strin
         }],
         vis: ast::Visibility::Inherited,
         node: ast::ItemKind::Use(P(codemap::dummy_spanned(ast::ViewPathGlob(ast::Path {
-            segments: ["{{root}}", name, "prelude", "v1"].into_iter().map(|name| {
+            segments: ["{{root}}", name, "prelude", "v1"].iter().map(|name| {
                 ast::PathSegment::from_ident(ast::Ident::from_str(name), DUMMY_SP)
             }).collect(),
             span: span,

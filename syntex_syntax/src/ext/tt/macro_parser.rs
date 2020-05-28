@@ -206,7 +206,7 @@ pub enum NamedMatch {
 
 fn nameize<I: Iterator<Item=Rc<NamedMatch>>>(sess: &ParseSess, ms: &[TokenTree], mut res: I)
                                              -> NamedParseResult {
-    fn n_rec<I: Iterator<Item=Rc<NamedMatch>>>(sess: &ParseSess, m: &TokenTree, mut res: &mut I,
+    fn n_rec<I: Iterator<Item=Rc<NamedMatch>>>(sess: &ParseSess, m: &TokenTree, res: &mut I,
              ret_val: &mut HashMap<Ident, Rc<NamedMatch>>)
              -> Result<(), (syntax_pos::Span, String)> {
         match *m {
@@ -446,7 +446,7 @@ pub fn parse(sess: &ParseSess,
         /* error messages here could be improved with links to orig. rules */
         if token_name_eq(&parser.token, &token::Eof) {
             if eof_eis.len() == 1 {
-                let matches = eof_eis[0].matches.iter_mut().map(|mut dv| dv.pop().unwrap());
+                let matches = eof_eis[0].matches.iter_mut().map(|dv| dv.pop().unwrap());
                 return nameize(sess, ms, matches);
             } else if eof_eis.len() > 1 {
                 return Error(parser.span, "ambiguity: multiple successful parses".to_string());

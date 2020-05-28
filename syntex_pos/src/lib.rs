@@ -160,8 +160,8 @@ impl Span {
             if !info.call_site.source_equal(&prev_span) {
                 result.push(MacroBacktrace {
                     call_site: info.call_site,
-                    macro_decl_name: macro_decl_name,
-                    def_site_span: def_site_span,
+                    macro_decl_name,
+                    def_site_span,
                 });
             }
 
@@ -297,7 +297,7 @@ impl MultiSpan {
 
         for &(span, ref label) in &self.span_labels {
             span_labels.push(SpanLabel {
-                span: span,
+                span,
                 is_primary: is_primary(span),
                 label: Some(label.clone())
             });
@@ -306,7 +306,7 @@ impl MultiSpan {
         for &span in &self.primary_spans {
             if !span_labels.iter().any(|sl| sl.span == span) {
                 span_labels.push(SpanLabel {
-                    span: span,
+                    span,
                     is_primary: true,
                     label: None
                 });
@@ -514,8 +514,8 @@ impl FileMap {
     pub fn record_multibyte_char(&self, pos: BytePos, bytes: usize) {
         assert!(bytes >=2 && bytes <= 4);
         let mbc = MultiByteChar {
-            pos: pos,
-            bytes: bytes,
+            pos,
+            bytes,
         };
         self.multibyte_chars.borrow_mut().push(mbc);
     }

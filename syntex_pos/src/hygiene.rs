@@ -51,7 +51,7 @@ struct MarkData {
 impl Mark {
     pub fn fresh(parent: Mark) -> Self {
         HygieneData::with(|data| {
-            data.marks.push(MarkData { parent: parent, modern: false, expn_info: None });
+            data.marks.push(MarkData { parent, modern: false, expn_info: None });
             Mark(data.marks.len() as u32 - 1)
         })
     }
@@ -158,7 +158,7 @@ impl SyntaxContext {
                     syntax_contexts.push(SyntaxContextData {
                         outer_mark: mark,
                         prev_ctxt: ctxt_data.modern,
-                        modern: modern,
+                        modern,
                     });
                     modern
                 })
@@ -170,7 +170,7 @@ impl SyntaxContext {
                 syntax_contexts.push(SyntaxContextData {
                     outer_mark: mark,
                     prev_ctxt: self,
-                    modern: modern,
+                    modern,
                 });
                 SyntaxContext(syntax_contexts.len() as u32 - 1)
             })
@@ -331,7 +331,7 @@ impl Symbol {
     pub fn to_ident(self) -> Ident {
         HygieneData::with(|data| {
             match data.gensym_to_ctxt.get(&self) {
-                Some(&ctxt) => Ident { name: self.interned(), ctxt: ctxt },
+                Some(&ctxt) => Ident { name: self.interned(), ctxt },
                 None => Ident::with_empty_ctxt(self),
             }
         })

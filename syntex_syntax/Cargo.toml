@@ -11,7 +11,7 @@ include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-
 edition = "2015"
 
 [dependencies]
-bitflags = "0.9"
+bitflags = "1.2.1"
 log = "0.3"
 serde = { version = "1.0", features = ["rc"] }
 serde_derive = "1.0"

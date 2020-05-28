@@ -99,7 +99,7 @@ impl ColorConfig {
 
 pub struct EmitterWriter {
     dst: Destination,
-    cm: Option<Rc<CodeMapper>>,
+    cm: Option<Rc<dyn CodeMapper>>,
 }
 
 struct FileWithAnnotatedLines {
@@ -109,7 +109,7 @@ struct FileWithAnnotatedLines {
 }
 
 impl EmitterWriter {
-    pub fn stderr(color_config: ColorConfig, code_map: Option<Rc<CodeMapper>>) -> EmitterWriter {
+    pub fn stderr(color_config: ColorConfig, code_map: Option<Rc<dyn CodeMapper>>) -> EmitterWriter {
         if color_config.use_color() {
             let dst = Destination::from_stderr();
             EmitterWriter {
@@ -124,7 +124,7 @@ impl EmitterWriter {
         }
     }
 
-    pub fn new(dst: Box<Write + Send>, code_map: Option<Rc<CodeMapper>>) -> EmitterWriter {
+    pub fn new(dst: Box<dyn Write + Send>, code_map: Option<Rc<dyn CodeMapper>>) -> EmitterWriter {
         EmitterWriter {
             dst: Raw(dst),
             cm: code_map,
@@ -1254,7 +1254,6 @@ fn emit_to_destination(rendered_buffer: &Vec<Vec<StyledString>>,
 
 #[cfg(unix)]
 fn stderr_isatty() -> bool {
-    use libc;
     unsafe { libc::isatty(libc::STDERR_FILENO) != 0 }
 }
 #[cfg(windows)]
@@ -1274,12 +1273,12 @@ fn stderr_isatty() -> bool {
     }
 }
 
-pub type BufferedStderr = term::Terminal<Output = BufferedWriter> + Send;
+pub type BufferedStderr = dyn term::Terminal<Output = BufferedWriter> + Send;
 
 pub enum Destination {
     Terminal(Box<term::StderrTerminal>),
     BufferedTerminal(Box<BufferedStderr>),
-    Raw(Box<Write + Send>),
+    Raw(Box<dyn Write + Send>),
 }
 
 /// Buffered writer gives us a way on Unix to buffer up an entire error message before we output

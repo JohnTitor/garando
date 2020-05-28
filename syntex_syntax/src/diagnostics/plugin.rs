@@ -56,7 +56,7 @@ fn with_registered_diagnostics<T, F>(f: F) -> T where
 pub fn expand_diagnostic_used<'cx>(ecx: &'cx mut ExtCtxt,
                                    span: Span,
                                    token_tree: &[TokenTree])
-                                   -> Box<MacResult+'cx> {
+                                   -> Box<dyn MacResult + 'cx> {
     let code = match (token_tree.len(), token_tree.get(0)) {
         (1, Some(&TokenTree::Token(_, token::Ident(code)))) => code,
         _ => unreachable!()
@@ -89,7 +89,7 @@ pub fn expand_diagnostic_used<'cx>(ecx: &'cx mut ExtCtxt,
 pub fn expand_register_diagnostic<'cx>(ecx: &'cx mut ExtCtxt,
                                        span: Span,
                                        token_tree: &[TokenTree])
-                                       -> Box<MacResult+'cx> {
+                                       -> Box<dyn MacResult + 'cx> {
     let (code, description) = match (
         token_tree.len(),
         token_tree.get(0),
@@ -159,7 +159,7 @@ pub fn expand_register_diagnostic<'cx>(ecx: &'cx mut ExtCtxt,
 pub fn expand_build_diagnostic_array<'cx>(ecx: &'cx mut ExtCtxt,
                                           span: Span,
                                           token_tree: &[TokenTree])
-                                          -> Box<MacResult+'cx> {
+                                          -> Box<dyn MacResult + 'cx> {
     assert_eq!(token_tree.len(), 3);
     let (crate_name, name) = match (&token_tree[0], &token_tree[2]) {
         (
@@ -181,7 +181,7 @@ pub fn expand_build_diagnostic_array<'cx>(ecx: &'cx mut ExtCtxt,
                 ecx.span_bug(span, &format!(
                     "error writing metadata for triple `{}` and crate `{}`, error: {}, \
                      cause: {:?}",
-                    target_triple, crate_name, e.description(), e.cause()
+                    target_triple, crate_name, e.to_string(), e.source()
                 ));
             }
         });

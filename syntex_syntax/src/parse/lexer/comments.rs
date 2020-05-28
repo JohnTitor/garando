@@ -343,7 +343,7 @@ pub struct Literal {
 
 // it appears this function is called only from pprust... that's
 // probably not a good thing.
-pub fn gather_comments_and_literals(sess: &ParseSess, path: String, srdr: &mut Read)
+pub fn gather_comments_and_literals(sess: &ParseSess, path: String, srdr: &mut dyn Read)
                                     -> (Vec<Comment>, Vec<Literal>) {
     let mut src = Vec::new();
     srdr.read_to_end(&mut src).unwrap();

@@ -67,16 +67,16 @@ pub struct State<'a> {
     literals: Option<Vec<comments::Literal> >,
     cur_cmnt_and_lit: CurrentCommentAndLiteral,
     boxes: Vec<pp::Breaks>,
-    ann: &'a (PpAnn+'a),
+    ann: &'a (dyn PpAnn+'a),
 }
 
-pub fn rust_printer<'a>(writer: Box<Write+'a>) -> State<'a> {
+pub fn rust_printer<'a>(writer: Box<dyn Write+'a>) -> State<'a> {
     static NO_ANN: NoAnn = NoAnn;
     rust_printer_annotated(writer, &NO_ANN)
 }
 
-pub fn rust_printer_annotated<'a>(writer: Box<Write+'a>,
-                                  ann: &'a PpAnn) -> State<'a> {
+pub fn rust_printer_annotated<'a>(writer: Box<dyn Write+'a>,
+                                  ann: &'a dyn PpAnn) -> State<'a> {
     State {
         s: pp::mk_printer(writer, DEFAULT_COLUMNS),
         cm: None,
@@ -102,9 +102,9 @@ pub fn print_crate<'a>(cm: &'a CodeMap,
                        sess: &ParseSess,
                        krate: &ast::Crate,
                        filename: String,
-                       input: &mut Read,
-                       out: Box<Write+'a>,
-                       ann: &'a PpAnn,
+                       input: &mut dyn Read,
+                       out: Box<dyn Write+'a>,
+                       ann: &'a dyn PpAnn,
                        is_expanded: bool) -> io::Result<()> {
     let mut s = State::new_from_input(cm, sess, filename, input, out, ann, is_expanded);
 
@@ -135,9 +135,9 @@ impl<'a> State<'a> {
     pub fn new_from_input(cm: &'a CodeMap,
                           sess: &ParseSess,
                           filename: String,
-                          input: &mut Read,
-                          out: Box<Write+'a>,
-                          ann: &'a PpAnn,
+                          input: &mut dyn Read,
+                          out: Box<dyn Write+'a>,
+                          ann: &'a dyn PpAnn,
                           is_expanded: bool) -> State<'a> {
         let (cmnts, lits) = comments::gather_comments_and_literals(sess, filename, input);
 
@@ -153,8 +153,8 @@ impl<'a> State<'a> {
     }
 
     pub fn new(cm: &'a CodeMap,
-               out: Box<Write+'a>,
-               ann: &'a PpAnn,
+               out: Box<dyn Write+'a>,
+               ann: &'a dyn PpAnn,
                comments: Option<Vec<comments::Comment>>,
                literals: Option<Vec<comments::Literal>>) -> State<'a> {
         State {
@@ -673,12 +673,12 @@ pub trait PrintState<'a> {
                     style: ast::StrStyle) -> io::Result<()> {
         let st = match style {
             ast::StrStyle::Cooked => {
-                (format!("\"{}\"", parse::escape_default(st)))
+                format!("\"{}\"", parse::escape_default(st))
             }
             ast::StrStyle::Raw(n) => {
-                (format!("r{delim}\"{string}\"{delim}",
+                format!("r{delim}\"{string}\"{delim}",
                          delim=repeat("#", n),
-                         string=st))
+                         string=st)
             }
         };
         word(self.writer(), &st[..])
@@ -1474,7 +1474,7 @@ impl<'a> State<'a> {
 
     pub fn print_defaultness(&mut self, defatulness: ast::Defaultness) -> io::Result<()> {
         if let ast::Defaultness::Default = defatulness {
-            try!(self.word_nbsp("default"));
+            self.word_nbsp("default")?;
         }
         Ok(())
     }
