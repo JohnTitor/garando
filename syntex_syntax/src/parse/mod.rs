@@ -41,8 +41,6 @@ pub mod common;
 pub mod classify;
 pub mod obsolete;
 
-use extprim::u128::u128;
-
 /// Info about a parsing session.
 pub struct ParseSess {
     pub span_diagnostic: Handler,

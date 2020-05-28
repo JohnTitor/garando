@@ -25,7 +25,6 @@ pub extern crate syntex_errors as errors;
 extern crate syntex_pos as syntax_pos;
 mod rustc_data_structures;
 
-extern crate extprim;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate serde_json;

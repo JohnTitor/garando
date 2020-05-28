@@ -34,8 +34,6 @@ use util::ThinVec;
 use std::cell::{RefCell, Cell};
 use std::iter;
 
-use extprim::u128::u128;
-
 thread_local! {
     static USED_ATTRS: RefCell<Vec<u64>> = RefCell::new(Vec::new());
     static KNOWN_ATTRS: RefCell<Vec<u64>> = RefCell::new(Vec::new());
@@ -979,7 +977,7 @@ pub fn find_repr_attrs(diagnostic: &Handler, attr: &Attribute) -> Vec<ReprAttr> 
                             if align.is_power_of_two() {
                                 // rustc::ty::layout::Align restricts align to <= 32768
                                 if align <= u128::from(32768u64) {
-                                    acc.push(ReprAlign(align.low64() as u16));
+                                    acc.push(ReprAlign(align as u16));
                                 } else {
                                     align_error = Some("larger than 32768");
                                 }

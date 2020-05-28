@@ -40,9 +40,6 @@ pub mod rt {
     pub use syntax_pos::{BytePos, Span, DUMMY_SP};
     pub use codemap::{dummy_spanned};
 
-    use extprim::i128::i128;
-    use extprim::u128::u128;
-
     pub trait ToTokens {
         fn to_tokens(&self, _cx: &ExtCtxt) -> Vec<TokenTree>;
     }
@@ -294,7 +291,7 @@ pub mod rt {
                     } else {
                         *self
                     };
-                    let lit = ast::LitKind::Int(i128::from(val as i64).as_u128(), ast::LitIntType::Signed($tag));
+                    let lit = ast::LitKind::Int(i128::from(val as i64) as u128, ast::LitIntType::Signed($tag));
                     let lit = P(ast::Expr {
                         id: ast::DUMMY_NODE_ID,
                         node: ast::ExprKind::Lit(P(dummy_spanned(lit))),

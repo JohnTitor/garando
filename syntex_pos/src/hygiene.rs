@@ -186,26 +186,6 @@ impl SyntaxContext {
     }
 
     /// Adjust this context for resolution in a scope created by the given expansion.
-    /// For example, consider the following three resolutions of `f`:
-    /// ```rust
-    /// mod foo { pub fn f() {} } // `f`'s `SyntaxContext` is empty.
-    /// m!(f);
-    /// macro m($f:ident) {
-    ///     mod bar {
-    ///         pub fn f() {} // `f`'s `SyntaxContext` has a single `Mark` from `m`.
-    ///         pub fn $f() {} // `$f`'s `SyntaxContext` is empty.
-    ///     }
-    ///     foo::f(); // `f`'s `SyntaxContext` has a single `Mark` from `m`
-    ///     //^ Since `mod foo` is outside this expansion, `adjust` removes the mark from `f`,
-    ///     //| and it resolves to `::foo::f`.
-    ///     bar::f(); // `f`'s `SyntaxContext` has a single `Mark` from `m`
-    ///     //^ Since `mod bar` not outside this expansion, `adjust` does not change `f`,
-    ///     //| and it resolves to `::bar::f`.
-    ///     bar::$f(); // `f`'s `SyntaxContext` is empty.
-    ///     //^ Since `mod bar` is not outside this expansion, `adjust` does not change `$f`,
-    ///     //| and it resolves to `::bar::$f`.
-    /// }
-    /// ```
     /// This returns the expansion whose definition scope we use to privacy check the resolution,
     /// or `None` if we privacy check as usual (i.e. not w.r.t. a macro definition scope).
     pub fn adjust(&mut self, expansion: Mark) -> Option<Mark> {
@@ -218,26 +198,6 @@ impl SyntaxContext {
 
     /// Adjust this context for resolution in a scope created by the given expansion
     /// via a glob import with the given `SyntaxContext`.
-    /// For example,
-    /// ```rust
-    /// m!(f);
-    /// macro m($i:ident) {
-    ///     mod foo {
-    ///         pub fn f() {} // `f`'s `SyntaxContext` has a single `Mark` from `m`.
-    ///         pub fn $i() {} // `$i`'s `SyntaxContext` is empty.
-    ///     }
-    ///     n(f);
-    ///     macro n($j:ident) {
-    ///         use foo::*;
-    ///         f(); // `f`'s `SyntaxContext` has a mark from `m` and a mark from `n`
-    ///         //^ `glob_adjust` removes the mark from `n`, so this resolves to `foo::f`.
-    ///         $i(); // `$i`'s `SyntaxContext` has a mark from `n`
-    ///         //^ `glob_adjust` removes the mark from `n`, so this resolves to `foo::$i`.
-    ///         $j(); // `$j`'s `SyntaxContext` has a mark from `m`
-    ///         //^ This cannot be glob-adjusted, so this is a resolution error.
-    ///     }
-    /// }
-    /// ```
     /// This returns `None` if the context cannot be glob-adjusted.
     /// Otherwise, it returns the scope to use when privacy checking (see `adjust` for details).
     pub fn glob_adjust(&mut self, expansion: Mark, mut glob_ctxt: SyntaxContext)
@@ -256,11 +216,6 @@ impl SyntaxContext {
     }
 
     /// Undo `glob_adjust` if possible:
-    /// ```rust
-    /// if let Some(privacy_checking_scope) = self.reverse_glob_adjust(expansion, glob_ctxt) {
-    ///     assert!(self.glob_adjust(expansion, glob_ctxt) == Some(privacy_checking_scope));
-    /// }
-    /// ```
     pub fn reverse_glob_adjust(&mut self, expansion: Mark, mut glob_ctxt: SyntaxContext)
                                -> Option<Option<Mark>> {
         if self.adjust(expansion).is_some() {

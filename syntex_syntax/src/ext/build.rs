@@ -17,9 +17,6 @@ use ext::base::ExtCtxt;
 use ptr::P;
 use symbol::{Symbol, keywords};
 
-use extprim::i128::i128;
-use extprim::u128::u128;
-
 // Transitional reexports so qquote can find the paths it is looking for
 mod syntax {
     pub use ext;
@@ -707,12 +704,12 @@ impl<'a> AstBuilder for ExtCtxt<'a> {
     }
     fn expr_isize(&self, sp: Span, i: isize) -> P<ast::Expr> {
         if i < 0 {
-            let i = (-i128::from(i as i64)).as_u128();
+            let i = (-i128::from(i as i64)) as u128;
             let lit_ty = ast::LitIntType::Signed(ast::IntTy::Is);
             let lit = self.expr_lit(sp, ast::LitKind::Int(i, lit_ty));
             self.expr_unary(sp, ast::UnOp::Neg, lit)
         } else {
-            self.expr_lit(sp, ast::LitKind::Int(i128::from(i as i64).as_u128(),
+            self.expr_lit(sp, ast::LitKind::Int(i128::from(i as i64) as u128,
                                                 ast::LitIntType::Signed(ast::IntTy::Is)))
         }
     }
