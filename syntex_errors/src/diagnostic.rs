@@ -16,6 +16,8 @@ use crate::RenderSpan;
 use crate::Substitution;
 use std::fmt;
 
+use serde::{Deserialize, Serialize};
+
 #[must_use]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Diagnostic {

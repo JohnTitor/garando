@@ -8,6 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use serde::{Deserialize, Serialize};
+
 /// A vector type optimized for cases where this size is usually 0 (c.f. `SmallVector`).
 /// The `Option<Box<..>>` wrapping allows us to represent a zero sized vector with `None`,
 /// which uses only a single (null) pointer.

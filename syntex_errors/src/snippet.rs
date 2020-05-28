@@ -13,6 +13,7 @@
 use crate::syntax_pos::{FileMap, Span};
 use crate::CodeMapper;
 use crate::Level;
+use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
 #[derive(Clone)]

@@ -30,6 +30,8 @@ use std::env;
 use std::fs;
 use std::io::{self, Read};
 
+use serde::{Deserialize, Serialize};
+
 /// Return the span itself if it doesn't come from a macro expansion,
 /// otherwise return the call site span up to the `enclosing_sp` by
 /// following the `expn_info` chain.

@@ -18,6 +18,8 @@ use crate::tokenstream;
 
 use std::rc::Rc;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Debug)]
 pub struct Delimited {
     pub delim: token::DelimToken,

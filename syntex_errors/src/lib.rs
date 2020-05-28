@@ -36,9 +36,7 @@ pub mod registry;
 pub mod snippet;
 pub mod styled_buffer;
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
+use serde::{Deserialize, Serialize};
 
 use crate::syntax_pos::{BytePos, FileLinesResult, FileName, Loc, MultiSpan, Span, NO_EXPANSION};
 

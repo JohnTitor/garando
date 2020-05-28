@@ -32,6 +32,8 @@ use std::fmt;
 use std::rc::Rc;
 use std::u32;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Copy)]
 pub struct Lifetime {
     pub id: NodeId,

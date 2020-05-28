@@ -22,6 +22,8 @@ use crate::tokenstream::TokenTree;
 use std::fmt;
 use std::rc::Rc;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug, Copy)]
 pub enum BinOpToken {
     Plus,

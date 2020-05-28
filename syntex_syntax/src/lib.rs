@@ -29,12 +29,6 @@ pub extern crate syntex_errors as errors;
 extern crate syntex_pos as syntax_pos;
 mod rustc_data_structures;
 
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-extern crate unicode_xid;
-
 // A variant of 'try!' that panics on an Err. This is used as a crutch on the
 // way towards a non-panic!-prone parser. It should be used for fatal parsing
 // errors; eventually we plan to convert all code using panictry to just use
