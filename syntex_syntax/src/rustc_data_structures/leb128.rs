@@ -16,7 +16,8 @@
 /// that is to be written to with the byte to be encoded
 /// at that position.
 pub fn write_unsigned_leb128_to<W>(mut value: u128, mut write: W) -> usize
-    where W: FnMut(usize, u8)
+where
+    W: FnMut(usize, u8),
 {
     let mut position = 0;
     loop {
@@ -45,15 +46,16 @@ pub fn write_unsigned_leb128_to<W>(mut value: u128, mut write: W) -> usize
 /// that is to be written to with the byte to be encoded
 /// at that position.
 pub fn write_signed_leb128_to<W>(mut value: i128, mut write: W) -> usize
-    where W: FnMut(usize, u8)
+where
+    W: FnMut(usize, u8),
 {
     let mut position = 0;
 
     loop {
         let mut byte = (value as u8) & 0x7f;
         value >>= 7;
-        let more = !((((value == i128::from(0)) && ((byte & 0x40) == 0)) ||
-                      ((value == i128::from(-1)) && ((byte & 0x40) != 0))));
+        let more = !(((value == i128::from(0)) && ((byte & 0x40) == 0))
+            || ((value == i128::from(-1)) && ((byte & 0x40) != 0)));
 
         if more {
             byte |= 0x80; // Mark this byte to show that more bytes will follow.

@@ -11,9 +11,9 @@
 // Characters and their corresponding confusables were collected from
 // http://www.unicode.org/Public/security/revision-06/confusables.txt
 
-use syntax_pos::{Span, NO_EXPANSION};
-use errors::DiagnosticBuilder;
 use super::StringReader;
+use errors::DiagnosticBuilder;
+use syntax_pos::{Span, NO_EXPANSION};
 
 const UNICODE_ARRAY: &'static [(char, &'static str, char)] = &[
     (' ', "No-Break Space", ' '),
@@ -131,7 +131,11 @@ const UNICODE_ARRAY: &'static [(char, &'static str, char)] = &[
     ('ˮ', "Modifier Letter Double Apostrophe", '"'),
     ('ײ', "Hebrew Ligature Yiddish Double Yod", '"'),
     ('❞', "Heavy Double Comma Quotation Mark Ornament", '"'),
-    ('❝', "Heavy Double Turned Comma Quotation Mark Ornament", '"'),
+    (
+        '❝',
+        "Heavy Double Turned Comma Quotation Mark Ornament",
+        '"',
+    ),
     ('❨', "Medium Left Parenthesis Ornament", '('),
     ('﴾', "Ornate Left Parenthesis", '('),
     ('（', "Fullwidth Left Parenthesis", '('),
@@ -165,7 +169,11 @@ const UNICODE_ARRAY: &'static [(char, &'static str, char)] = &[
     ('⁁', "Caret Insertion Point", '/'),
     ('∕', "Division Slash", '/'),
     ('⁄', "Fraction Slash", '/'),
-    ('╱', "Box Drawings Light Diagonal Upper Right To Lower Left", '/'),
+    (
+        '╱',
+        "Box Drawings Light Diagonal Upper Right To Lower Left",
+        '/',
+    ),
     ('⟋', "Mathematical Rising Diagonal", '/'),
     ('⧸', "Big Solidus", '/'),
     ('㇓', "Cjk Stroke Sp", '/'),
@@ -186,19 +194,28 @@ const UNICODE_ARRAY: &'static [(char, &'static str, char)] = &[
     ('ꝸ', "Latin Small Letter Um", '&'),
     ('﬩', "Hebrew Letter Alternative Plus Sign", '+'),
     ('‹', "Single Left-Pointing Angle Quotation Mark", '<'),
-    ('❮', "Heavy Left-Pointing Angle Quotation Mark Ornament", '<'),
+    (
+        '❮',
+        "Heavy Left-Pointing Angle Quotation Mark Ornament",
+        '<',
+    ),
     ('˂', "Modifier Letter Left Arrowhead", '<'),
     ('〈', "Left Angle Bracket", '<'),
     ('《', "Left Double Angle Bracket", '<'),
     ('꓿', "Lisu Punctuation Full Stop", '='),
     ('›', "Single Right-Pointing Angle Quotation Mark", '>'),
-    ('❯', "Heavy Right-Pointing Angle Quotation Mark Ornament", '>'),
+    (
+        '❯',
+        "Heavy Right-Pointing Angle Quotation Mark Ornament",
+        '>',
+    ),
     ('˃', "Modifier Letter Right Arrowhead", '>'),
     ('〉', "Right Angle Bracket", '>'),
     ('》', "Right Double Angle Bracket", '>'),
     ('Ⲻ', "Coptic Capital Letter Dialect-P Ni", '-'),
     ('Ɂ', "Latin Capital Letter Glottal Stop", '?'),
-    ('Ⳇ', "Coptic Capital Letter Old Coptic Esh", '/'), ];
+    ('Ⳇ', "Coptic Capital Letter Old Coptic Esh", '/'),
+];
 
 const ASCII_ARRAY: &'static [(char, &'static str)] = &[
     (' ', "Space"),
@@ -225,27 +242,35 @@ const ASCII_ARRAY: &'static [(char, &'static str)] = &[
     ('+', "Plus Sign"),
     ('<', "Less-Than Sign"),
     ('=', "Equals Sign"),
-    ('>', "Greater-Than Sign"), ];
+    ('>', "Greater-Than Sign"),
+];
 
-pub fn check_for_substitution<'a>(reader: &StringReader<'a>,
-                                  ch: char,
-                                  err: &mut DiagnosticBuilder<'a>) {
+pub fn check_for_substitution<'a>(
+    reader: &StringReader<'a>,
+    ch: char,
+    err: &mut DiagnosticBuilder<'a>,
+) {
     UNICODE_ARRAY
-    .iter()
-    .find(|&&(c, _, _)| c == ch)
-    .map(|&(_, u_name, ascii_char)| {
-        let span = Span { lo: reader.pos, hi: reader.next_pos, ctxt: NO_EXPANSION };
-        match ASCII_ARRAY.iter().find(|&&(c, _)| c == ascii_char) {
-            Some(&(ascii_char, ascii_name)) => {
-                let msg =
-                    format!("unicode character '{}' ({}) looks like '{}' ({}), but it's not",
-                            ch, u_name, ascii_char, ascii_name);
-                err.span_help(span, &msg);
-            },
-            None => {
-                let msg = format!("substitution character not found for '{}'", ch);
-                reader.sess.span_diagnostic.span_bug_no_panic(span, &msg);
+        .iter()
+        .find(|&&(c, _, _)| c == ch)
+        .map(|&(_, u_name, ascii_char)| {
+            let span = Span {
+                lo: reader.pos,
+                hi: reader.next_pos,
+                ctxt: NO_EXPANSION,
+            };
+            match ASCII_ARRAY.iter().find(|&&(c, _)| c == ascii_char) {
+                Some(&(ascii_char, ascii_name)) => {
+                    let msg = format!(
+                        "unicode character '{}' ({}) looks like '{}' ({}), but it's not",
+                        ch, u_name, ascii_char, ascii_name
+                    );
+                    err.span_help(span, &msg);
+                }
+                None => {
+                    let msg = format!("substitution character not found for '{}'", ch);
+                    reader.sess.span_diagnostic.span_bug_no_panic(span, &msg);
+                }
             }
-        }
-    });
+        });
 }

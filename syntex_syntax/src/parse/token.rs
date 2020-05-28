@@ -9,9 +9,9 @@
 // except according to those terms.
 
 pub use self::BinOpToken::*;
-pub use self::Nonterminal::*;
 pub use self::DelimToken::*;
 pub use self::Lit::*;
+pub use self::Nonterminal::*;
 pub use self::Token::*;
 
 use ast::{self};
@@ -51,7 +51,11 @@ pub enum DelimToken {
 
 impl DelimToken {
     pub fn len(self) -> usize {
-        if self == NoDelim { 0 } else { 1 }
+        if self == NoDelim {
+            0
+        } else {
+            1
+        }
     }
 
     pub fn is_empty(self) -> bool {
@@ -79,7 +83,7 @@ impl Lit {
             Integer(_) => "integer",
             Float(_) => "float",
             Str_(_) | StrRaw(..) => "string",
-            ByteStr(_) | ByteStrRaw(..) => "byte string"
+            ByteStr(_) | ByteStrRaw(..) => "byte string",
         }
     }
 }
@@ -87,39 +91,41 @@ impl Lit {
 fn ident_can_begin_expr(ident: ast::Ident) -> bool {
     let ident_token: Token = Ident(ident);
 
-    !ident_token.is_any_keyword() ||
-    ident_token.is_path_segment_keyword() ||
-    [
-        keywords::Do.name(),
-        keywords::Box.name(),
-        keywords::Break.name(),
-        keywords::Continue.name(),
-        keywords::False.name(),
-        keywords::For.name(),
-        keywords::If.name(),
-        keywords::Loop.name(),
-        keywords::Match.name(),
-        keywords::Move.name(),
-        keywords::Return.name(),
-        keywords::True.name(),
-        keywords::Unsafe.name(),
-        keywords::While.name(),
-    ].contains(&ident.name)
+    !ident_token.is_any_keyword()
+        || ident_token.is_path_segment_keyword()
+        || [
+            keywords::Do.name(),
+            keywords::Box.name(),
+            keywords::Break.name(),
+            keywords::Continue.name(),
+            keywords::False.name(),
+            keywords::For.name(),
+            keywords::If.name(),
+            keywords::Loop.name(),
+            keywords::Match.name(),
+            keywords::Move.name(),
+            keywords::Return.name(),
+            keywords::True.name(),
+            keywords::Unsafe.name(),
+            keywords::While.name(),
+        ]
+        .contains(&ident.name)
 }
 
 fn ident_can_begin_type(ident: ast::Ident) -> bool {
     let ident_token: Token = Ident(ident);
 
-    !ident_token.is_any_keyword() ||
-    ident_token.is_path_segment_keyword() ||
-    [
-        keywords::For.name(),
-        keywords::Impl.name(),
-        keywords::Fn.name(),
-        keywords::Unsafe.name(),
-        keywords::Extern.name(),
-        keywords::Typeof.name(),
-    ].contains(&ident.name)
+    !ident_token.is_any_keyword()
+        || ident_token.is_path_segment_keyword()
+        || [
+            keywords::For.name(),
+            keywords::Impl.name(),
+            keywords::Fn.name(),
+            keywords::Unsafe.name(),
+            keywords::Extern.name(),
+            keywords::Typeof.name(),
+        ]
+        .contains(&ident.name)
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug)]
@@ -179,7 +185,6 @@ pub enum Token {
     // Junk. These carry no data because we don't really care about the data
     // they *would* carry, and don't really want to allocate a new ident for
     // them. Instead, users could extract that from the associated span.
-
     /// Whitespace
     Whitespace,
     /// Comment
@@ -249,7 +254,7 @@ impl Token {
     pub fn is_lit(&self) -> bool {
         match *self {
             Literal(..) => true,
-            _           => false,
+            _ => false,
         }
     }
 
@@ -272,8 +277,8 @@ impl Token {
     /// Returns `true` if the token is a documentation comment.
     pub fn is_doc_comment(&self) -> bool {
         match *self {
-            DocComment(..)   => true,
-            _                => false,
+            DocComment(..) => true,
+            _ => false,
         }
     }
 
@@ -281,7 +286,7 @@ impl Token {
     pub fn is_interpolated(&self) -> bool {
         match *self {
             Interpolated(..) => true,
-            _                => false,
+            _ => false,
         }
     }
 
@@ -299,14 +304,13 @@ impl Token {
     pub fn is_lifetime(&self) -> bool {
         match *self {
             Lifetime(..) => true,
-            _            => false,
+            _ => false,
         }
     }
 
     /// Returns `true` if the token is either the `mut` or `const` keyword.
     pub fn is_mutability(&self) -> bool {
-        self.is_keyword(keywords::Mut) ||
-        self.is_keyword(keywords::Const)
+        self.is_keyword(keywords::Mut) || self.is_keyword(keywords::Const)
     }
 
     pub fn is_qpath_start(&self) -> bool {
@@ -314,20 +318,27 @@ impl Token {
     }
 
     pub fn is_path_start(&self) -> bool {
-        self == &ModSep || self.is_qpath_start() || self.is_path() ||
-        self.is_path_segment_keyword() || self.is_ident() && !self.is_any_keyword()
+        self == &ModSep
+            || self.is_qpath_start()
+            || self.is_path()
+            || self.is_path_segment_keyword()
+            || self.is_ident() && !self.is_any_keyword()
     }
 
     /// Returns `true` if the token is a given keyword, `kw`.
     pub fn is_keyword(&self, kw: keywords::Keyword) -> bool {
-        self.ident().map(|ident| ident.name == kw.name()).unwrap_or(false)
+        self.ident()
+            .map(|ident| ident.name == kw.name())
+            .unwrap_or(false)
     }
 
     pub fn is_path_segment_keyword(&self) -> bool {
         match self.ident() {
-            Some(id) => id.name == keywords::Super.name() ||
-                        id.name == keywords::SelfValue.name() ||
-                        id.name == keywords::SelfType.name(),
+            Some(id) => {
+                id.name == keywords::Super.name()
+                    || id.name == keywords::SelfValue.name()
+                    || id.name == keywords::SelfType.name()
+            }
             None => false,
         }
     }

@@ -38,10 +38,11 @@ pub fn acquire_global_lock(name: &str) -> Box<Any> {
     const WAIT_ABANDONED: DWORD = 0x00000080;
 
     extern "system" {
-        fn CreateMutexA(lpMutexAttributes: LPSECURITY_ATTRIBUTES,
-                        bInitialOwner: BOOL,
-                        lpName: LPCSTR)
-                        -> HANDLE;
+        fn CreateMutexA(
+            lpMutexAttributes: LPSECURITY_ATTRIBUTES,
+            bInitialOwner: BOOL,
+            lpName: LPCSTR,
+        ) -> HANDLE;
         fn WaitForSingleObject(hHandle: HANDLE, dwMilliseconds: DWORD) -> DWORD;
         fn ReleaseMutex(hMutex: HANDLE) -> BOOL;
         fn CloseHandle(hObject: HANDLE) -> BOOL;
@@ -76,9 +77,11 @@ pub fn acquire_global_lock(name: &str) -> Box<Any> {
         // open up a handle to one if it already exists.
         let mutex = CreateMutexA(0 as *mut _, 0, cname.as_ptr() as *const u8);
         if mutex.is_null() {
-            panic!("failed to create global mutex named `{}`: {}",
-                   name,
-                   io::Error::last_os_error());
+            panic!(
+                "failed to create global mutex named `{}`: {}",
+                name,
+                io::Error::last_os_error()
+            );
         }
         let mutex = Handle(mutex);
 
@@ -96,11 +99,13 @@ pub fn acquire_global_lock(name: &str) -> Box<Any> {
         match WaitForSingleObject(mutex.0, INFINITE) {
             WAIT_OBJECT_0 | WAIT_ABANDONED => {}
             code => {
-                panic!("WaitForSingleObject failed on global mutex named \
+                panic!(
+                    "WaitForSingleObject failed on global mutex named \
                         `{}`: {} (ret={:x})",
-                       name,
-                       io::Error::last_os_error(),
-                       code);
+                    name,
+                    io::Error::last_os_error(),
+                    code
+                );
             }
         }
 

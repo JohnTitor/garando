@@ -22,18 +22,18 @@
 //! and a borrowed `TokenStream` is sufficient to build an owned `TokenStream` without taking
 //! ownership of the original.
 
-use syntax_pos::{BytePos, Span, DUMMY_SP};
 use ext::base;
 use ext::tt::{macro_parser, quoted};
-use parse::Directory;
 use parse::token::{self, Token};
+use parse::Directory;
 use print::pprust;
+use syntax_pos::{BytePos, Span, DUMMY_SP};
 use util::RcSlice;
 
-use std::{fmt, iter, mem};
 use std::hash::{self, Hash};
+use std::{fmt, iter, mem};
 
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// A delimited sequence of token trees
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Debug)]
@@ -60,7 +60,10 @@ impl Delimited {
         let open_span = if span == DUMMY_SP {
             DUMMY_SP
         } else {
-            Span { hi: span.lo + BytePos(self.delim.len() as u32), ..span }
+            Span {
+                hi: span.lo + BytePos(self.delim.len() as u32),
+                ..span
+            }
         };
         TokenTree::Token(open_span, self.open_token())
     }
@@ -70,7 +73,10 @@ impl Delimited {
         let close_span = if span == DUMMY_SP {
             DUMMY_SP
         } else {
-            Span { lo: span.hi - BytePos(self.delim.len() as u32), ..span }
+            Span {
+                lo: span.hi - BytePos(self.delim.len() as u32),
+                ..span
+            }
         };
         TokenTree::Token(close_span, self.close_token())
     }
@@ -103,8 +109,11 @@ pub enum TokenTree {
 
 impl TokenTree {
     /// Use this token tree as a matcher to parse given tts.
-    pub fn parse(cx: &base::ExtCtxt, mtch: &[quoted::TokenTree], tts: TokenStream)
-                 -> macro_parser::NamedParseResult {
+    pub fn parse(
+        cx: &base::ExtCtxt,
+        mtch: &[quoted::TokenTree],
+        tts: TokenStream,
+    ) -> macro_parser::NamedParseResult {
         // `None` is because we're not interpolating
         let directory = Directory {
             path: cx.current_expansion.module.directory.clone(),
@@ -118,8 +127,12 @@ impl TokenTree {
         match (self, other) {
             (&TokenTree::Token(_, ref tk), &TokenTree::Token(_, ref tk2)) => tk == tk2,
             (&TokenTree::Delimited(_, ref dl), &TokenTree::Delimited(_, ref dl2)) => {
-                dl.delim == dl2.delim &&
-                dl.stream().trees().zip(dl2.stream().trees()).all(|(tt, tt2)| tt.eq_unspanned(&tt2))
+                dl.delim == dl2.delim
+                    && dl
+                        .stream()
+                        .trees()
+                        .zip(dl2.stream().trees())
+                        .all(|(tt, tt2)| tt.eq_unspanned(&tt2))
             }
             (_, _) => false,
         }
@@ -161,7 +174,9 @@ enum TokenStreamKind {
 
 impl From<TokenTree> for TokenStream {
     fn from(tt: TokenTree) -> TokenStream {
-        TokenStream { kind: TokenStreamKind::Tree(tt) }
+        TokenStream {
+            kind: TokenStreamKind::Tree(tt),
+        }
     }
 }
 
@@ -187,7 +202,9 @@ impl PartialEq<TokenStream> for TokenStream {
 
 impl TokenStream {
     pub fn empty() -> TokenStream {
-        TokenStream { kind: TokenStreamKind::Empty }
+        TokenStream {
+            kind: TokenStreamKind::Empty,
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -206,7 +223,9 @@ impl TokenStream {
     }
 
     fn concat_rc_slice(streams: RcSlice<TokenStream>) -> TokenStream {
-        TokenStream { kind: TokenStreamKind::Stream(streams) }
+        TokenStream {
+            kind: TokenStreamKind::Stream(streams),
+        }
     }
 
     pub fn trees(&self) -> Cursor {
@@ -263,8 +282,10 @@ impl Iterator for Cursor {
                         return Some(tree);
                     }
                     TokenStreamKind::Stream(stream) => {
-                        cursor.stack.push((mem::replace(&mut cursor.stream, stream),
-                                           mem::replace(&mut cursor.index, 0) + 1));
+                        cursor.stack.push((
+                            mem::replace(&mut cursor.stream, stream),
+                            mem::replace(&mut cursor.index, 0) + 1,
+                        ));
                     }
                     TokenStreamKind::Empty => {
                         cursor.index += 1;
@@ -285,9 +306,11 @@ impl Cursor {
         Cursor(match stream.kind {
             TokenStreamKind::Empty => CursorKind::Empty,
             TokenStreamKind::Tree(tree) => CursorKind::Tree(tree, false),
-            TokenStreamKind::Stream(stream) => {
-                CursorKind::Stream(StreamCursor { stream: stream, index: 0, stack: Vec::new() })
-            }
+            TokenStreamKind::Stream(stream) => CursorKind::Stream(StreamCursor {
+                stream: stream,
+                index: 0,
+                stack: Vec::new(),
+            }),
         })
     }
 
@@ -296,7 +319,12 @@ impl Cursor {
             CursorKind::Empty => TokenStream::empty(),
             CursorKind::Tree(tree, _) => tree.into(),
             CursorKind::Stream(cursor) => TokenStream::concat_rc_slice({
-                cursor.stack.get(0).cloned().map(|(stream, _)| stream).unwrap_or(cursor.stream)
+                cursor
+                    .stack
+                    .get(0)
+                    .cloned()
+                    .map(|(stream, _)| stream)
+                    .unwrap_or(cursor.stream)
             }),
         }
     }
@@ -321,8 +349,8 @@ impl Cursor {
         match self.0 {
             CursorKind::Empty | CursorKind::Tree(_, true) => Err(n),
             CursorKind::Tree(ref tree, false) => look_ahead(&[tree.clone().into()], n),
-            CursorKind::Stream(ref cursor) => {
-                look_ahead(&cursor.stream[cursor.index ..], n).or_else(|mut n| {
+            CursorKind::Stream(ref cursor) => look_ahead(&cursor.stream[cursor.index..], n)
+                .or_else(|mut n| {
                     for &(ref stream, index) in cursor.stack.iter().rev() {
                         n = match look_ahead(&stream[index..], n) {
                             Ok(tree) => return Ok(tree),
@@ -331,9 +359,9 @@ impl Cursor {
                     }
 
                     Err(n)
-                })
-            }
-        }.ok()
+                }),
+        }
+        .ok()
     }
 }
 
@@ -355,7 +383,10 @@ impl From<TokenStream> for ThinTokenStream {
 
 impl From<ThinTokenStream> for TokenStream {
     fn from(stream: ThinTokenStream) -> TokenStream {
-        stream.0.map(TokenStream::concat_rc_slice).unwrap_or_else(TokenStream::empty)
+        stream
+            .0
+            .map(TokenStream::concat_rc_slice)
+            .unwrap_or_else(TokenStream::empty)
     }
 }
 
@@ -375,7 +406,8 @@ impl fmt::Display for TokenStream {
 
 impl Serialize for TokenStream {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         self.trees().collect::<Vec<_>>().serialize(serializer)
     }
@@ -383,7 +415,8 @@ impl Serialize for TokenStream {
 
 impl<'de> Deserialize<'de> for TokenStream {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         Vec::<TokenTree>::deserialize(deserializer).map(|vec| vec.into_iter().collect())
     }
@@ -399,7 +432,8 @@ impl Hash for TokenStream {
 
 impl Serialize for ThinTokenStream {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         TokenStream::from(self.clone()).serialize(serializer)
     }
@@ -407,7 +441,8 @@ impl Serialize for ThinTokenStream {
 
 impl<'de> Deserialize<'de> for ThinTokenStream {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         TokenStream::deserialize(deserializer).map(Into::into)
     }
@@ -419,13 +454,12 @@ impl Hash for ThinTokenStream {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use syntax::ast::Ident;
-    use syntax_pos::{Span, BytePos, NO_EXPANSION};
     use parse::token::Token;
+    use syntax::ast::Ident;
+    use syntax_pos::{BytePos, Span, NO_EXPANSION};
     use util::parser_testing::string_to_stream;
 
     fn string_to_ts(string: &str) -> TokenStream {

@@ -15,31 +15,31 @@
 
 use self::HasTestSignature::*;
 
-use std::iter;
-use std::slice;
-use std::mem;
-use std::vec;
 use attr::{self, HasAttrs};
-use syntax_pos::{self, DUMMY_SP, NO_EXPANSION, Span, FileMap, BytePos};
+use std::iter;
+use std::mem;
 use std::rc::Rc;
+use std::slice;
+use std::vec;
+use syntax_pos::{self, BytePos, FileMap, Span, DUMMY_SP, NO_EXPANSION};
 
-use codemap::{self, CodeMap, ExpnInfo, NameAndSpan, MacroAttribute, dummy_spanned};
-use errors;
-use errors::snippet::{SnippetData};
+use ast::{self, Ident};
+use codemap::{self, dummy_spanned, CodeMap, ExpnInfo, MacroAttribute, NameAndSpan};
 use config;
 use entry::{self, EntryPointType};
+use errors;
+use errors::snippet::SnippetData;
 use ext::base::{ExtCtxt, Resolver};
 use ext::build::AstBuilder;
 use ext::expand::ExpansionConfig;
 use ext::hygiene::{Mark, SyntaxContext};
-use fold::Folder;
-use util::move_map::MoveMap;
 use fold;
+use fold::Folder;
 use parse::{token, ParseSess};
 use print::pprust;
-use ast::{self, Ident};
 use ptr::P;
-use symbol::{self, Symbol, keywords};
+use symbol::{self, keywords, Symbol};
+use util::move_map::MoveMap;
 use util::small_vector::SmallVector;
 
 enum ShouldPanic {
@@ -49,10 +49,10 @@ enum ShouldPanic {
 
 struct Test {
     span: Span,
-    path: Vec<Ident> ,
+    path: Vec<Ident>,
     bench: bool,
     ignore: bool,
-    should_panic: ShouldPanic
+    should_panic: ShouldPanic,
 }
 
 struct TestCtxt<'a> {
@@ -71,21 +71,28 @@ struct TestCtxt<'a> {
 
 // Traverse the crate, collecting all the test functions, eliding any
 // existing main functions, and synthesizing a main test harness
-pub fn modify_for_testing(sess: &ParseSess,
-                          resolver: &mut dyn Resolver,
-                          should_test: bool,
-                          krate: ast::Crate,
-                          span_diagnostic: &errors::Handler) -> ast::Crate {
+pub fn modify_for_testing(
+    sess: &ParseSess,
+    resolver: &mut dyn Resolver,
+    should_test: bool,
+    krate: ast::Crate,
+    span_diagnostic: &errors::Handler,
+) -> ast::Crate {
     // Check for #[reexport_test_harness_main = "some_name"] which
     // creates a `use some_name = __test::main;`. This needs to be
     // unconditional, so that the attribute is still marked as used in
     // non-test builds.
     let reexport_test_harness_main =
-        attr::first_attr_value_str_by_name(&krate.attrs,
-                                           "reexport_test_harness_main");
+        attr::first_attr_value_str_by_name(&krate.attrs, "reexport_test_harness_main");
 
     if should_test {
-        generate_test_harness(sess, resolver, reexport_test_harness_main, krate, span_diagnostic)
+        generate_test_harness(
+            sess,
+            resolver,
+            reexport_test_harness_main,
+            krate,
+            span_diagnostic,
+        )
     } else {
         krate
     }
@@ -133,7 +140,7 @@ impl<'a> fold::Folder for TestHarnessGenerator<'a> {
                         path: self.cx.path.clone(),
                         bench: is_bench_fn(&self.cx, &i),
                         ignore: is_ignored(&i),
-                        should_panic: should_panic(&i, &self.cx)
+                        should_panic: should_panic(&i, &self.cx),
                     };
                     self.cx.testfns.push(test);
                     self.tests.push(i.ident);
@@ -156,7 +163,8 @@ impl<'a> fold::Folder for TestHarnessGenerator<'a> {
                 mod_folded.items.push(it);
 
                 if !self.cx.path.is_empty() {
-                    self.tested_submods.push((self.cx.path[self.cx.path.len()-1], sym));
+                    self.tested_submods
+                        .push((self.cx.path[self.cx.path.len() - 1], sym));
                 } else {
                     debug!("pushing nothing, sym: {:?}", sym);
                     self.cx.toplevel_reexport = Some(sym);
@@ -170,7 +178,9 @@ impl<'a> fold::Folder for TestHarnessGenerator<'a> {
         SmallVector::one(P(item))
     }
 
-    fn fold_mac(&mut self, mac: ast::Mac) -> ast::Mac { mac }
+    fn fold_mac(&mut self, mac: ast::Mac) -> ast::Mac {
+        mac
+    }
 }
 
 struct EntryPointCleaner {
@@ -188,56 +198,73 @@ impl fold::Folder for EntryPointCleaner {
         // clash with the one we're going to add, but mark it as
         // #[allow(dead_code)] to avoid printing warnings.
         let folded = match entry::entry_point_type(&folded, self.depth) {
-            EntryPointType::MainNamed |
-            EntryPointType::MainAttr |
-            EntryPointType::Start =>
-                folded.map(|ast::Item {id, ident, attrs, node, vis, span}| {
-                    let allow_str = Symbol::intern("allow");
-                    let dead_code_str = Symbol::intern("dead_code");
-                    let word_vec = vec![attr::mk_list_word_item(dead_code_str)];
-                    let allow_dead_code_item = attr::mk_list_item(allow_str, word_vec);
-                    let allow_dead_code = attr::mk_attr_outer(DUMMY_SP,
-                                                              attr::mk_attr_id(),
-                                                              allow_dead_code_item);
+            EntryPointType::MainNamed | EntryPointType::MainAttr | EntryPointType::Start => folded
+                .map(
+                    |ast::Item {
+                         id,
+                         ident,
+                         attrs,
+                         node,
+                         vis,
+                         span,
+                     }| {
+                        let allow_str = Symbol::intern("allow");
+                        let dead_code_str = Symbol::intern("dead_code");
+                        let word_vec = vec![attr::mk_list_word_item(dead_code_str)];
+                        let allow_dead_code_item = attr::mk_list_item(allow_str, word_vec);
+                        let allow_dead_code =
+                            attr::mk_attr_outer(DUMMY_SP, attr::mk_attr_id(), allow_dead_code_item);
 
-                    ast::Item {
-                        id: id,
-                        ident: ident,
-                        attrs: attrs.into_iter()
-                            .filter(|attr| {
-                                !attr.check_name("main") && !attr.check_name("start")
-                            })
-                            .chain(iter::once(allow_dead_code))
-                            .collect(),
-                        node: node,
-                        vis: vis,
-                        span: span
-                    }
-                }),
-            EntryPointType::None |
-            EntryPointType::OtherMain => folded,
+                        ast::Item {
+                            id: id,
+                            ident: ident,
+                            attrs: attrs
+                                .into_iter()
+                                .filter(|attr| {
+                                    !attr.check_name("main") && !attr.check_name("start")
+                                })
+                                .chain(iter::once(allow_dead_code))
+                                .collect(),
+                            node: node,
+                            vis: vis,
+                            span: span,
+                        }
+                    },
+                ),
+            EntryPointType::None | EntryPointType::OtherMain => folded,
         };
 
         SmallVector::one(folded)
     }
 
-    fn fold_mac(&mut self, mac: ast::Mac) -> ast::Mac { mac }
+    fn fold_mac(&mut self, mac: ast::Mac) -> ast::Mac {
+        mac
+    }
 }
 
-fn mk_reexport_mod(cx: &mut TestCtxt,
-                   parent: ast::NodeId,
-                   tests: Vec<Ident>,
-                   tested_submods: Vec<(Ident, Ident)>)
-                   -> (P<ast::Item>, Ident) {
+fn mk_reexport_mod(
+    cx: &mut TestCtxt,
+    parent: ast::NodeId,
+    tests: Vec<Ident>,
+    tested_submods: Vec<(Ident, Ident)>,
+) -> (P<ast::Item>, Ident) {
     let super_ = Ident::from_str("super");
 
-    let items = tests.into_iter().map(|r| {
-        cx.ext_cx.item_use_simple(DUMMY_SP, ast::Visibility::Public,
-                                  cx.ext_cx.path(DUMMY_SP, vec![super_, r]))
-    }).chain(tested_submods.into_iter().map(|(r, sym)| {
-        let path = cx.ext_cx.path(DUMMY_SP, vec![super_, r, sym]);
-        cx.ext_cx.item_use_simple_(DUMMY_SP, ast::Visibility::Public, r, path)
-    })).collect();
+    let items = tests
+        .into_iter()
+        .map(|r| {
+            cx.ext_cx.item_use_simple(
+                DUMMY_SP,
+                ast::Visibility::Public,
+                cx.ext_cx.path(DUMMY_SP, vec![super_, r]),
+            )
+        })
+        .chain(tested_submods.into_iter().map(|(r, sym)| {
+            let path = cx.ext_cx.path(DUMMY_SP, vec![super_, r, sym]);
+            cx.ext_cx
+                .item_use_simple_(DUMMY_SP, ast::Visibility::Public, r, path)
+        }))
+        .collect();
 
     let reexport_mod = ast::Mod {
         inner: DUMMY_SP,
@@ -245,25 +272,36 @@ fn mk_reexport_mod(cx: &mut TestCtxt,
     };
 
     let sym = Ident::with_empty_ctxt(Symbol::gensym("__test_reexports"));
-    let parent = if parent == ast::DUMMY_NODE_ID { ast::CRATE_NODE_ID } else { parent };
+    let parent = if parent == ast::DUMMY_NODE_ID {
+        ast::CRATE_NODE_ID
+    } else {
+        parent
+    };
     cx.ext_cx.current_expansion.mark = cx.ext_cx.resolver.get_module_scope(parent);
-    let it = cx.ext_cx.monotonic_expander().fold_item(P(ast::Item {
-        ident: sym,
-        attrs: Vec::new(),
-        id: ast::DUMMY_NODE_ID,
-        node: ast::ItemKind::Mod(reexport_mod),
-        vis: ast::Visibility::Public,
-        span: DUMMY_SP,
-    })).pop().unwrap();
+    let it = cx
+        .ext_cx
+        .monotonic_expander()
+        .fold_item(P(ast::Item {
+            ident: sym,
+            attrs: Vec::new(),
+            id: ast::DUMMY_NODE_ID,
+            node: ast::ItemKind::Mod(reexport_mod),
+            vis: ast::Visibility::Public,
+            span: DUMMY_SP,
+        }))
+        .pop()
+        .unwrap();
 
     (it, sym)
 }
 
-fn generate_test_harness(sess: &ParseSess,
-                         resolver: &mut dyn Resolver,
-                         reexport_test_harness_main: Option<Symbol>,
-                         krate: ast::Crate,
-                         sd: &errors::Handler) -> ast::Crate {
+fn generate_test_harness(
+    sess: &ParseSess,
+    resolver: &mut dyn Resolver,
+    reexport_test_harness_main: Option<Symbol>,
+    krate: ast::Crate,
+    sd: &errors::Handler,
+) -> ast::Crate {
     // Remove the entry points
     let mut cleaner = EntryPointCleaner { depth: 0 };
     let krate = cleaner.fold_crate(krate);
@@ -288,21 +326,25 @@ fn generate_test_harness(sess: &ParseSess,
             format: MacroAttribute(Symbol::intern("test")),
             span: None,
             allow_internal_unstable: true,
-        }
+        },
     });
 
     TestHarnessGenerator {
         cx: cx,
         tests: Vec::new(),
         tested_submods: Vec::new(),
-    }.fold_crate(krate)
+    }
+    .fold_crate(krate)
 }
 
 /// Craft a span that will be ignored by the stability lint's
 /// call to codemap's `is_internal` check.
 /// The expanded code calls some unstable functions in the test crate.
 fn ignored_span(cx: &TestCtxt, sp: Span) -> Span {
-    Span { ctxt: cx.ctxt, ..sp }
+    Span {
+        ctxt: cx.ctxt,
+        ..sp
+    }
 }
 
 #[derive(PartialEq)]
@@ -317,31 +359,31 @@ fn is_test_fn(cx: &TestCtxt, i: &ast::Item) -> bool {
 
     fn has_test_signature(i: &ast::Item) -> HasTestSignature {
         match i.node {
-          ast::ItemKind::Fn(ref decl, _, _, _, ref generics, _) => {
-            let no_output = match decl.output {
-                ast::FunctionRetTy::Default(..) => true,
-                ast::FunctionRetTy::Ty(ref t) if t.node == ast::TyKind::Tup(vec![]) => true,
-                _ => false
-            };
-            if decl.inputs.is_empty()
-                   && no_output
-                   && !generics.is_parameterized() {
-                Yes
-            } else {
-                No
+            ast::ItemKind::Fn(ref decl, _, _, _, ref generics, _) => {
+                let no_output = match decl.output {
+                    ast::FunctionRetTy::Default(..) => true,
+                    ast::FunctionRetTy::Ty(ref t) if t.node == ast::TyKind::Tup(vec![]) => true,
+                    _ => false,
+                };
+                if decl.inputs.is_empty() && no_output && !generics.is_parameterized() {
+                    Yes
+                } else {
+                    No
+                }
             }
-          }
-          _ => NotEvenAFunction,
+            _ => NotEvenAFunction,
         }
     }
 
     if has_test_attr {
         let diag = cx.span_diagnostic;
         match has_test_signature(i) {
-            Yes => {},
-            No => diag.span_err(i.span, "functions used as tests must have signature fn() -> ()"),
-            NotEvenAFunction => diag.span_err(i.span,
-                                              "only functions may be used as tests"),
+            Yes => {}
+            No => diag.span_err(
+                i.span,
+                "functions used as tests must have signature fn() -> ()",
+            ),
+            NotEvenAFunction => diag.span_err(i.span, "only functions may be used as tests"),
         }
     }
 
@@ -358,22 +400,24 @@ fn is_bench_fn(cx: &TestCtxt, i: &ast::Item) -> bool {
                 let no_output = match decl.output {
                     ast::FunctionRetTy::Default(..) => true,
                     ast::FunctionRetTy::Ty(ref t) if t.node == ast::TyKind::Tup(vec![]) => true,
-                    _ => false
+                    _ => false,
                 };
                 let tparm_cnt = generics.ty_params.len();
                 // NB: inadequate check, but we're running
                 // well before resolve, can't get too deep.
-                input_cnt == 1
-                    && no_output && tparm_cnt == 0
+                input_cnt == 1 && no_output && tparm_cnt == 0
             }
-          _ => false
+            _ => false,
         }
     }
 
     if has_bench_attr && !has_test_signature(i) {
         let diag = cx.span_diagnostic;
-        diag.span_err(i.span, "functions used as benches must have signature \
-                      `fn(&mut Bencher) -> ()`");
+        diag.span_err(
+            i.span,
+            "functions used as benches must have signature \
+                      `fn(&mut Bencher) -> ()`",
+        );
     }
 
     has_bench_attr && has_test_signature(i)
@@ -392,9 +436,12 @@ fn should_panic(i: &ast::Item, cx: &TestCtxt) -> ShouldPanic {
                     attr.span(),
                     "attribute must be of the form: \
                      `#[should_panic]` or \
-                     `#[should_panic(expected = \"error message\")]`"
-                ).note("Errors in this attribute were erroneously allowed \
-                        and will become a hard error in a future release.")
+                     `#[should_panic(expected = \"error message\")]`",
+                )
+                .note(
+                    "Errors in this attribute were erroneously allowed \
+                        and will become a hard error in a future release.",
+                )
                 .emit();
                 return ShouldPanic::Yes(None);
             }
@@ -403,7 +450,8 @@ fn should_panic(i: &ast::Item, cx: &TestCtxt) -> ShouldPanic {
                 None => ShouldPanic::Yes(None),
                 // Handle #[should_panic(expected = "foo")]
                 Some(list) => {
-                    let msg = list.iter()
+                    let msg = list
+                        .iter()
                         .find(|mi| mi.check_name("expected"))
                         .and_then(|mi| mi.meta_item())
                         .and_then(|mi| mi.value_str());
@@ -411,15 +459,19 @@ fn should_panic(i: &ast::Item, cx: &TestCtxt) -> ShouldPanic {
                         sd.struct_span_warn(
                             attr.span(),
                             "argument must be of the form: \
-                             `expected = \"error message\"`"
-                        ).note("Errors in this attribute were erroneously \
+                             `expected = \"error message\"`",
+                        )
+                        .note(
+                            "Errors in this attribute were erroneously \
                                 allowed and will become a hard error in a \
-                                future release.").emit();
+                                future release.",
+                        )
+                        .emit();
                         ShouldPanic::Yes(None)
                     } else {
                         ShouldPanic::Yes(msg)
                     }
-                },
+                }
             }
         }
         None => ShouldPanic::No,
@@ -447,12 +499,20 @@ fn mk_std(cx: &TestCtxt) -> P<ast::Item> {
     let id_test = Ident::from_str("test");
     let sp = ignored_span(cx, DUMMY_SP);
     let (vi, vis, ident) = if cx.is_test_crate {
-        (ast::ItemKind::Use(
-            P(nospan(ast::ViewPathSimple(id_test,
-                                         path_node(vec![id_test]))))),
-         ast::Visibility::Public, keywords::Invalid.ident())
+        (
+            ast::ItemKind::Use(P(nospan(ast::ViewPathSimple(
+                id_test,
+                path_node(vec![id_test]),
+            )))),
+            ast::Visibility::Public,
+            keywords::Invalid.ident(),
+        )
     } else {
-        (ast::ItemKind::ExternCrate(None), ast::Visibility::Inherited, id_test)
+        (
+            ast::ItemKind::ExternCrate(None),
+            ast::Visibility::Inherited,
+            id_test,
+        )
     };
     P(ast::Item {
         id: ast::DUMMY_NODE_ID,
@@ -460,7 +520,7 @@ fn mk_std(cx: &TestCtxt) -> P<ast::Item> {
         node: vi,
         attrs: vec![],
         vis: vis,
-        span: sp
+        span: sp,
     })
 }
 
@@ -476,14 +536,15 @@ fn mk_main(cx: &mut TestCtxt) -> P<ast::Item> {
     let ecx = &cx.ext_cx;
 
     // test::test_main_static
-    let test_main_path =
-        ecx.path(sp, vec![Ident::from_str("test"), Ident::from_str("test_main_static")]);
+    let test_main_path = ecx.path(
+        sp,
+        vec![Ident::from_str("test"), Ident::from_str("test_main_static")],
+    );
 
     // test::test_main_static(...)
     let test_main_path_expr = ecx.expr_path(test_main_path);
     let tests_ident_expr = ecx.expr_ident(sp, Ident::from_str("TESTS"));
-    let call_test_main = ecx.expr_call(sp, test_main_path_expr,
-                                       vec![tests_ident_expr]);
+    let call_test_main = ecx.expr_call(sp, test_main_path_expr, vec![tests_ident_expr]);
     let call_test_main = ecx.stmt_expr(call_test_main);
     // #![main]
     let main_meta = ecx.meta_word(sp, Symbol::intern("main"));
@@ -491,17 +552,21 @@ fn mk_main(cx: &mut TestCtxt) -> P<ast::Item> {
     // pub fn main() { ... }
     let main_ret_ty = ecx.ty(sp, ast::TyKind::Tup(vec![]));
     let main_body = ecx.block(sp, vec![call_test_main]);
-    let main = ast::ItemKind::Fn(ecx.fn_decl(vec![], main_ret_ty),
-                           ast::Unsafety::Normal,
-                           dummy_spanned(ast::Constness::NotConst),
-                           ::abi::Abi::Rust, ast::Generics::default(), main_body);
+    let main = ast::ItemKind::Fn(
+        ecx.fn_decl(vec![], main_ret_ty),
+        ast::Unsafety::Normal,
+        dummy_spanned(ast::Constness::NotConst),
+        ::abi::Abi::Rust,
+        ast::Generics::default(),
+        main_body,
+    );
     P(ast::Item {
         ident: Ident::from_str("main"),
         attrs: vec![main_attr],
         id: ast::DUMMY_NODE_ID,
         node: main,
         vis: ast::Visibility::Public,
-        span: sp
+        span: sp,
     })
 }
 
@@ -524,51 +589,71 @@ fn mk_test_module(cx: &mut TestCtxt) -> (P<ast::Item>, Option<P<ast::Item>>) {
     let mod_ident = Ident::with_empty_ctxt(Symbol::gensym("__test"));
 
     let mut expander = cx.ext_cx.monotonic_expander();
-    let item = expander.fold_item(P(ast::Item {
-        id: ast::DUMMY_NODE_ID,
-        ident: mod_ident,
-        attrs: vec![],
-        node: item_,
-        vis: ast::Visibility::Public,
-        span: DUMMY_SP,
-    })).pop().unwrap();
+    let item = expander
+        .fold_item(P(ast::Item {
+            id: ast::DUMMY_NODE_ID,
+            ident: mod_ident,
+            attrs: vec![],
+            node: item_,
+            vis: ast::Visibility::Public,
+            span: DUMMY_SP,
+        }))
+        .pop()
+        .unwrap();
     let reexport = cx.reexport_test_harness_main.map(|s| {
         // building `use <ident> = __test::main`
         let reexport_ident = Ident::with_empty_ctxt(s);
 
-        let use_path =
-            nospan(ast::ViewPathSimple(reexport_ident,
-                                       path_node(vec![mod_ident, Ident::from_str("main")])));
+        let use_path = nospan(ast::ViewPathSimple(
+            reexport_ident,
+            path_node(vec![mod_ident, Ident::from_str("main")]),
+        ));
 
-        expander.fold_item(P(ast::Item {
-            id: ast::DUMMY_NODE_ID,
-            ident: keywords::Invalid.ident(),
-            attrs: vec![],
-            node: ast::ItemKind::Use(P(use_path)),
-            vis: ast::Visibility::Inherited,
-            span: DUMMY_SP
-        })).pop().unwrap()
+        expander
+            .fold_item(P(ast::Item {
+                id: ast::DUMMY_NODE_ID,
+                ident: keywords::Invalid.ident(),
+                attrs: vec![],
+                node: ast::ItemKind::Use(P(use_path)),
+                vis: ast::Visibility::Inherited,
+                span: DUMMY_SP,
+            }))
+            .pop()
+            .unwrap()
     });
 
-    debug!("Synthetic test module:\n{}\n", pprust::item_to_string(&item));
+    debug!(
+        "Synthetic test module:\n{}\n",
+        pprust::item_to_string(&item)
+    );
 
     (item, reexport)
 }
 
 fn nospan<T>(t: T) -> codemap::Spanned<T> {
-    codemap::Spanned { node: t, span: DUMMY_SP }
+    codemap::Spanned {
+        node: t,
+        span: DUMMY_SP,
+    }
 }
 
 fn path_node(ids: Vec<Ident>) -> ast::Path {
     ast::Path {
         span: DUMMY_SP,
-        segments: ids.into_iter().map(|id| ast::PathSegment::from_ident(id, DUMMY_SP)).collect(),
+        segments: ids
+            .into_iter()
+            .map(|id| ast::PathSegment::from_ident(id, DUMMY_SP))
+            .collect(),
     }
 }
 
 fn path_name_i(idents: &[Ident]) -> String {
     // FIXME: Bad copies (#2543 -- same for everything else that says "bad")
-    idents.iter().map(|i| i.to_string()).collect::<Vec<String>>().join("::")
+    idents
+        .iter()
+        .map(|i| i.to_string())
+        .collect::<Vec<String>>()
+        .join("::")
 }
 
 fn mk_tests(cx: &TestCtxt) -> P<ast::Item> {
@@ -580,26 +665,30 @@ fn mk_tests(cx: &TestCtxt) -> P<ast::Item> {
     // gensym information.
     let sp = ignored_span(cx, DUMMY_SP);
     let ecx = &cx.ext_cx;
-    let struct_type = ecx.ty_path(ecx.path(sp, vec![ecx.ident_of("self"),
-                                                    ecx.ident_of("test"),
-                                                    ecx.ident_of("TestDescAndFn")]));
+    let struct_type = ecx.ty_path(ecx.path(
+        sp,
+        vec![
+            ecx.ident_of("self"),
+            ecx.ident_of("test"),
+            ecx.ident_of("TestDescAndFn"),
+        ],
+    ));
     let static_lt = ecx.lifetime(sp, keywords::StaticLifetime.ident());
     // &'static [self::test::TestDescAndFn]
-    let static_type = ecx.ty_rptr(sp,
-                                  ecx.ty(sp, ast::TyKind::Slice(struct_type)),
-                                  Some(static_lt),
-                                  ast::Mutability::Immutable);
+    let static_type = ecx.ty_rptr(
+        sp,
+        ecx.ty(sp, ast::TyKind::Slice(struct_type)),
+        Some(static_lt),
+        ast::Mutability::Immutable,
+    );
     // static TESTS: $static_type = &[...];
-    ecx.item_const(sp,
-                   ecx.ident_of("TESTS"),
-                   static_type,
-                   test_descs)
+    ecx.item_const(sp, ecx.ident_of("TESTS"), static_type, test_descs)
 }
 
 fn is_test_crate(krate: &ast::Crate) -> bool {
     match attr::find_crate_name(&krate.attrs) {
         Some(s) if "test" == s.as_str() => true,
-        _ => false
+        _ => false,
     }
 }
 
@@ -608,15 +697,20 @@ fn mk_test_descs(cx: &TestCtxt) -> P<ast::Expr> {
 
     P(ast::Expr {
         id: ast::DUMMY_NODE_ID,
-        node: ast::ExprKind::AddrOf(ast::Mutability::Immutable,
+        node: ast::ExprKind::AddrOf(
+            ast::Mutability::Immutable,
             P(ast::Expr {
                 id: ast::DUMMY_NODE_ID,
-                node: ast::ExprKind::Array(cx.testfns.iter().map(|test| {
-                    mk_test_desc_and_fn_rec(cx, test)
-                }).collect()),
+                node: ast::ExprKind::Array(
+                    cx.testfns
+                        .iter()
+                        .map(|test| mk_test_desc_and_fn_rec(cx, test))
+                        .collect(),
+                ),
                 span: DUMMY_SP,
                 attrs: ast::ThinVec::new(),
-            })),
+            }),
+        ),
         span: DUMMY_SP,
         attrs: ast::ThinVec::new(),
     })
@@ -634,9 +728,7 @@ fn mk_test_desc_and_fn_rec(cx: &TestCtxt, test: &Test) -> P<ast::Expr> {
     let test_id = ecx.ident_of("test");
 
     // creates self::test::$name
-    let test_path = |name| {
-        ecx.path(span, vec![self_id, test_id, ecx.ident_of(name)])
-    };
+    let test_path = |name| ecx.path(span, vec![self_id, test_id, ecx.ident_of(name)]);
     // creates $name: $expr
     let field = |name, expr| ecx.field_imm(span, ecx.ident_of(name), expr);
 
@@ -647,36 +739,46 @@ fn mk_test_desc_and_fn_rec(cx: &TestCtxt, test: &Test) -> P<ast::Expr> {
     let name_expr = ecx.expr_str(span, Symbol::intern(&path_string));
 
     // self::test::StaticTestName($name_expr)
-    let name_expr = ecx.expr_call(span,
-                                  ecx.expr_path(test_path("StaticTestName")),
-                                  vec![name_expr]);
+    let name_expr = ecx.expr_call(
+        span,
+        ecx.expr_path(test_path("StaticTestName")),
+        vec![name_expr],
+    );
 
     let ignore_expr = ecx.expr_bool(span, test.ignore);
     let should_panic_path = |name| {
-        ecx.path(span, vec![self_id, test_id, ecx.ident_of("ShouldPanic"), ecx.ident_of(name)])
+        ecx.path(
+            span,
+            vec![
+                self_id,
+                test_id,
+                ecx.ident_of("ShouldPanic"),
+                ecx.ident_of(name),
+            ],
+        )
     };
     let fail_expr = match test.should_panic {
         ShouldPanic::No => ecx.expr_path(should_panic_path("No")),
-        ShouldPanic::Yes(msg) => {
-            match msg {
-                Some(msg) => {
-                    let msg = ecx.expr_str(span, msg);
-                    let path = should_panic_path("YesWithMessage");
-                    ecx.expr_call(span, ecx.expr_path(path), vec![msg])
-                }
-                None => ecx.expr_path(should_panic_path("Yes")),
+        ShouldPanic::Yes(msg) => match msg {
+            Some(msg) => {
+                let msg = ecx.expr_str(span, msg);
+                let path = should_panic_path("YesWithMessage");
+                ecx.expr_call(span, ecx.expr_path(path), vec![msg])
             }
-        }
+            None => ecx.expr_path(should_panic_path("Yes")),
+        },
     };
 
     // self::test::TestDesc { ... }
     let desc_expr = ecx.expr_struct(
         span,
         test_path("TestDesc"),
-        vec![field("name", name_expr),
-             field("ignore", ignore_expr),
-             field("should_panic", fail_expr)]);
-
+        vec![
+            field("name", name_expr),
+            field("ignore", ignore_expr),
+            field("should_panic", fail_expr),
+        ],
+    );
 
     let mut visible_path = match cx.toplevel_reexport {
         Some(id) => vec![id],
@@ -689,13 +791,18 @@ fn mk_test_desc_and_fn_rec(cx: &TestCtxt, test: &Test) -> P<ast::Expr> {
 
     let fn_expr = ecx.expr_path(ecx.path_global(span, visible_path));
 
-    let variant_name = if test.bench { "StaticBenchFn" } else { "StaticTestFn" };
+    let variant_name = if test.bench {
+        "StaticBenchFn"
+    } else {
+        "StaticTestFn"
+    };
     // self::test::$variant_name($fn_expr)
     let testfn_expr = ecx.expr_call(span, ecx.expr_path(test_path(variant_name)), vec![fn_expr]);
 
     // self::test::TestDescAndFn { ... }
-    ecx.expr_struct(span,
-                    test_path("TestDescAndFn"),
-                    vec![field("desc", desc_expr),
-                         field("testfn", testfn_expr)])
+    ecx.expr_struct(
+        span,
+        test_path("TestDescAndFn"),
+        vec![field("desc", desc_expr), field("testfn", testfn_expr)],
+    )
 }

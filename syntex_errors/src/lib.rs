@@ -8,13 +8,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![doc(html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
-      html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
-      html_root_url = "https://docs.rs/syntex_errors/0.59.1")]
+#![doc(
+    html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
+    html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
+    html_root_url = "https://docs.rs/syntex_errors/0.59.1"
+)]
 
-extern crate term;
 extern crate libc;
 extern crate syntex_pos as syntax_pos;
+extern crate term;
 
 pub use emitter::ColorConfig;
 
@@ -22,23 +24,23 @@ use self::Level::*;
 
 use emitter::{Emitter, EmitterWriter};
 
-use std::cell::{RefCell, Cell};
-use std::{error, fmt};
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
+use std::{error, fmt};
 
 pub mod diagnostic;
 pub mod diagnostic_builder;
 pub mod emitter;
-pub mod snippet;
-pub mod registry;
-pub mod styled_buffer;
 mod lock;
+pub mod registry;
+pub mod snippet;
+pub mod styled_buffer;
 
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;
 
-use syntax_pos::{BytePos, Loc, FileLinesResult, FileName, MultiSpan, Span, NO_EXPANSION};
+use syntax_pos::{BytePos, FileLinesResult, FileName, Loc, MultiSpan, Span, NO_EXPANSION};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum RenderSpan {
@@ -100,7 +102,10 @@ impl CodeSuggestion {
     }
 
     /// Returns the number of substitutions
-    pub fn substitution_spans<'a>(&'a self) -> std::iter::Map<<&'a Vec<Substitution> as IntoIterator>::IntoIter, fn(&Substitution) -> Span> {
+    pub fn substitution_spans<'a>(
+        &'a self,
+    ) -> std::iter::Map<<&'a Vec<Substitution> as IntoIterator>::IntoIter, fn(&Substitution) -> Span>
+    {
         fn substitution_span(sub: &Substitution) -> Span {
             sub.span
         }
@@ -111,10 +116,7 @@ impl CodeSuggestion {
     pub fn splice_lines(&self, cm: &dyn CodeMapper) -> Vec<String> {
         use syntax_pos::{CharPos, Pos};
 
-        fn push_trailing(buf: &mut String,
-                         line_opt: Option<&str>,
-                         lo: &Loc,
-                         hi_opt: Option<&Loc>) {
+        fn push_trailing(buf: &mut String, line_opt: Option<&str>, lo: &Loc, hi_opt: Option<&Loc>) {
             let (lo, hi_opt) = (lo.col.to_usize(), hi_opt.map(|hi| hi.col.to_usize()));
             if let Some(line) = line_opt {
                 if let Some(lo) = line.char_indices().map(|(i, _)| i).nth(lo) {
@@ -134,7 +136,8 @@ impl CodeSuggestion {
             return vec![String::new()];
         }
 
-        let mut primary_spans: Vec<_> = self.substitution_parts
+        let mut primary_spans: Vec<_> = self
+            .substitution_parts
             .iter()
             .map(|sub| (sub.span, &sub.substitutions))
             .collect();
@@ -241,7 +244,7 @@ impl error::Error for ExplicitBug {
     }
 }
 
-pub use diagnostic::{Diagnostic, SubDiagnostic, DiagnosticStyledString, StringPart};
+pub use diagnostic::{Diagnostic, DiagnosticStyledString, StringPart, SubDiagnostic};
 pub use diagnostic_builder::DiagnosticBuilder;
 
 /// A handler deals with errors; certain errors
@@ -257,19 +260,21 @@ pub struct Handler {
 }
 
 impl Handler {
-    pub fn with_tty_emitter(color_config: ColorConfig,
-                            can_emit_warnings: bool,
-                            treat_err_as_bug: bool,
-                            cm: Option<Rc<dyn CodeMapper>>)
-                            -> Handler {
+    pub fn with_tty_emitter(
+        color_config: ColorConfig,
+        can_emit_warnings: bool,
+        treat_err_as_bug: bool,
+        cm: Option<Rc<dyn CodeMapper>>,
+    ) -> Handler {
         let emitter = Box::new(EmitterWriter::stderr(color_config, cm));
         Handler::with_emitter(can_emit_warnings, treat_err_as_bug, emitter)
     }
 
-    pub fn with_emitter(can_emit_warnings: bool,
-                        treat_err_as_bug: bool,
-                        e: Box<dyn Emitter>)
-                        -> Handler {
+    pub fn with_emitter(
+        can_emit_warnings: bool,
+        treat_err_as_bug: bool,
+        e: Box<dyn Emitter>,
+    ) -> Handler {
         Handler {
             err_count: Cell::new(0),
             emitter: RefCell::new(e),
@@ -288,10 +293,11 @@ impl Handler {
         DiagnosticBuilder::new(self, Level::Cancelled, "")
     }
 
-    pub fn struct_span_warn<'a, S: Into<MultiSpan>>(&'a self,
-                                                    sp: S,
-                                                    msg: &str)
-                                                    -> DiagnosticBuilder<'a> {
+    pub fn struct_span_warn<'a, S: Into<MultiSpan>>(
+        &'a self,
+        sp: S,
+        msg: &str,
+    ) -> DiagnosticBuilder<'a> {
         let mut result = DiagnosticBuilder::new(self, Level::Warning, msg);
         result.set_span(sp);
         if !self.can_emit_warnings {
@@ -299,11 +305,12 @@ impl Handler {
         }
         result
     }
-    pub fn struct_span_warn_with_code<'a, S: Into<MultiSpan>>(&'a self,
-                                                              sp: S,
-                                                              msg: &str,
-                                                              code: &str)
-                                                              -> DiagnosticBuilder<'a> {
+    pub fn struct_span_warn_with_code<'a, S: Into<MultiSpan>>(
+        &'a self,
+        sp: S,
+        msg: &str,
+        code: &str,
+    ) -> DiagnosticBuilder<'a> {
         let mut result = DiagnosticBuilder::new(self, Level::Warning, msg);
         result.set_span(sp);
         result.code(code.to_owned());
@@ -319,19 +326,21 @@ impl Handler {
         }
         result
     }
-    pub fn struct_span_err<'a, S: Into<MultiSpan>>(&'a self,
-                                                   sp: S,
-                                                   msg: &str)
-                                                   -> DiagnosticBuilder<'a> {
+    pub fn struct_span_err<'a, S: Into<MultiSpan>>(
+        &'a self,
+        sp: S,
+        msg: &str,
+    ) -> DiagnosticBuilder<'a> {
         let mut result = DiagnosticBuilder::new(self, Level::Error, msg);
         result.set_span(sp);
         result
     }
-    pub fn struct_span_err_with_code<'a, S: Into<MultiSpan>>(&'a self,
-                                                             sp: S,
-                                                             msg: &str,
-                                                             code: &str)
-                                                             -> DiagnosticBuilder<'a> {
+    pub fn struct_span_err_with_code<'a, S: Into<MultiSpan>>(
+        &'a self,
+        sp: S,
+        msg: &str,
+        code: &str,
+    ) -> DiagnosticBuilder<'a> {
         let mut result = DiagnosticBuilder::new(self, Level::Error, msg);
         result.set_span(sp);
         result.code(code.to_owned());
@@ -346,19 +355,21 @@ impl Handler {
         result.code(code.to_owned());
         result
     }
-    pub fn struct_span_fatal<'a, S: Into<MultiSpan>>(&'a self,
-                                                     sp: S,
-                                                     msg: &str)
-                                                     -> DiagnosticBuilder<'a> {
+    pub fn struct_span_fatal<'a, S: Into<MultiSpan>>(
+        &'a self,
+        sp: S,
+        msg: &str,
+    ) -> DiagnosticBuilder<'a> {
         let mut result = DiagnosticBuilder::new(self, Level::Fatal, msg);
         result.set_span(sp);
         result
     }
-    pub fn struct_span_fatal_with_code<'a, S: Into<MultiSpan>>(&'a self,
-                                                               sp: S,
-                                                               msg: &str,
-                                                               code: &str)
-                                                               -> DiagnosticBuilder<'a> {
+    pub fn struct_span_fatal_with_code<'a, S: Into<MultiSpan>>(
+        &'a self,
+        sp: S,
+        msg: &str,
+        code: &str,
+    ) -> DiagnosticBuilder<'a> {
         let mut result = DiagnosticBuilder::new(self, Level::Fatal, msg);
         result.set_span(sp);
         result.code(code.to_owned());
@@ -383,11 +394,12 @@ impl Handler {
         self.panic_if_treat_err_as_bug();
         FatalError
     }
-    pub fn span_fatal_with_code<S: Into<MultiSpan>>(&self,
-                                                    sp: S,
-                                                    msg: &str,
-                                                    code: &str)
-                                                    -> FatalError {
+    pub fn span_fatal_with_code<S: Into<MultiSpan>>(
+        &self,
+        sp: S,
+        msg: &str,
+        code: &str,
+    ) -> FatalError {
         self.emit_with_code(&sp.into(), msg, code, Fatal);
         self.panic_if_treat_err_as_bug();
         FatalError
@@ -396,10 +408,11 @@ impl Handler {
         self.emit(&sp.into(), msg, Error);
         self.panic_if_treat_err_as_bug();
     }
-    pub fn mut_span_err<'a, S: Into<MultiSpan>>(&'a self,
-                                                sp: S,
-                                                msg: &str)
-                                                -> DiagnosticBuilder<'a> {
+    pub fn mut_span_err<'a, S: Into<MultiSpan>>(
+        &'a self,
+        sp: S,
+        msg: &str,
+    ) -> DiagnosticBuilder<'a> {
         let mut result = DiagnosticBuilder::new(self, Level::Error, msg);
         result.set_span(sp);
         result
@@ -431,10 +444,7 @@ impl Handler {
     pub fn span_note_without_error<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
         self.emit(&sp.into(), msg, Note);
     }
-    pub fn span_note_diag<'a>(&'a self,
-                              sp: Span,
-                              msg: &str)
-                              -> DiagnosticBuilder<'a> {
+    pub fn span_note_diag<'a>(&'a self, sp: Span, msg: &str) -> DiagnosticBuilder<'a> {
         let mut db = DiagnosticBuilder::new(self, Note, msg);
         db.set_span(sp);
         db
@@ -528,7 +538,6 @@ impl Handler {
     }
 }
 
-
 #[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub enum Level {
     Bug,
@@ -579,7 +588,8 @@ impl Level {
 }
 
 pub fn expect<T, M>(diag: &Handler, opt: Option<T>, msg: M) -> T
-    where M: FnOnce() -> String
+where
+    M: FnOnce() -> String,
 {
     match opt {
         Some(t) => t,

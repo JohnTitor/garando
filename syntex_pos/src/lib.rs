@@ -14,26 +14,28 @@
 //!
 //! This API is completely unstable and subject to change.
 
-#![doc(html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
-      html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
-      html_root_url = "https://docs.rs/syntex_pos/0.59.1")]
+#![doc(
+    html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
+    html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
+    html_root_url = "https://docs.rs/syntex_pos/0.59.1"
+)]
 #![deny(warnings)]
 
 use std::cell::{Cell, RefCell};
+use std::cmp;
 use std::ops::{Add, Sub};
 use std::rc::Rc;
-use std::cmp;
 
 use std::fmt;
 
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;
-use serde::ser::{Serializer, SerializeSeq};
-use serde::de::{self, Deserializer, Visitor, SeqAccess, Unexpected};
+use serde::de::{self, Deserializer, SeqAccess, Unexpected, Visitor};
+use serde::ser::{SerializeSeq, Serializer};
 
 pub mod hygiene;
-pub use hygiene::{SyntaxContext, ExpnInfo, ExpnFormat, NameAndSpan};
+pub use hygiene::{ExpnFormat, ExpnInfo, NameAndSpan, SyntaxContext};
 
 pub mod symbol;
 
@@ -73,18 +75,29 @@ impl Span {
     /// Returns a new span representing just the end-point of this span
     pub fn end_point(self) -> Span {
         let lo = cmp::max(self.hi.0 - 1, self.lo.0);
-        Span { lo: BytePos(lo), ..self }
+        Span {
+            lo: BytePos(lo),
+            ..self
+        }
     }
 
     /// Returns a new span representing the next character after the end-point of this span
     pub fn next_point(self) -> Span {
         let lo = cmp::max(self.hi.0, self.lo.0 + 1);
-        Span { lo: BytePos(lo), hi: BytePos(lo), ..self }
+        Span {
+            lo: BytePos(lo),
+            hi: BytePos(lo),
+            ..self
+        }
     }
 
     /// Returns `self` if `self` is not the dummy span, and `other` otherwise.
     pub fn substitute_dummy(self, other: Span) -> Span {
-        if self.source_equal(&DUMMY_SP) { other } else { self }
+        if self.source_equal(&DUMMY_SP) {
+            other
+        } else {
+            self
+        }
     }
 
     pub fn contains(self, other: Span) -> bool {
@@ -102,7 +115,10 @@ impl Span {
     /// Returns `Some(span)`, where the start is trimmed by the end of `other`
     pub fn trim_start(self, other: Span) -> Option<Span> {
         if self.hi > other.hi {
-            Some(Span { lo: cmp::max(self.lo, other.hi), .. self })
+            Some(Span {
+                lo: cmp::max(self.lo, other.hi),
+                ..self
+            })
         } else {
             None
         }
@@ -111,7 +127,11 @@ impl Span {
     /// Return the source span - this is either the supplied span, or the span for
     /// the macro callsite that expanded to it.
     pub fn source_callsite(self) -> Span {
-        self.ctxt.outer().expn_info().map(|info| info.call_site.source_callsite()).unwrap_or(self)
+        self.ctxt
+            .outer()
+            .expn_info()
+            .map(|info| info.call_site.source_callsite())
+            .unwrap_or(self)
     }
 
     /// Return the source callee.
@@ -188,7 +208,7 @@ impl Span {
                 end.ctxt
             } else {
                 self.ctxt
-            }
+            },
         }
     }
 
@@ -200,7 +220,7 @@ impl Span {
                 end.ctxt
             } else {
                 self.ctxt
-            }
+            },
         }
     }
 }
@@ -219,8 +239,11 @@ pub struct SpanLabel {
 }
 
 fn default_span_debug(span: Span, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "Span {{ lo: {:?}, hi: {:?}, ctxt: {:?} }}",
-           span.lo, span.hi, span.ctxt)
+    write!(
+        f,
+        "Span {{ lo: {:?}, hi: {:?}, ctxt: {:?} }}",
+        span.lo, span.hi, span.ctxt
+    )
 }
 
 impl fmt::Debug for Span {
@@ -229,27 +252,31 @@ impl fmt::Debug for Span {
     }
 }
 
-pub const DUMMY_SP: Span = Span { lo: BytePos(0), hi: BytePos(0), ctxt: NO_EXPANSION };
+pub const DUMMY_SP: Span = Span {
+    lo: BytePos(0),
+    hi: BytePos(0),
+    ctxt: NO_EXPANSION,
+};
 
 impl MultiSpan {
     pub fn new() -> MultiSpan {
         MultiSpan {
             primary_spans: vec![],
-            span_labels: vec![]
+            span_labels: vec![],
         }
     }
 
     pub fn from_span(primary_span: Span) -> MultiSpan {
         MultiSpan {
             primary_spans: vec![primary_span],
-            span_labels: vec![]
+            span_labels: vec![],
         }
     }
 
     pub fn from_spans(vec: Vec<Span>) -> MultiSpan {
         MultiSpan {
             primary_spans: vec,
-            span_labels: vec![]
+            span_labels: vec![],
         }
     }
 
@@ -299,7 +326,7 @@ impl MultiSpan {
             span_labels.push(SpanLabel {
                 span,
                 is_primary: is_primary(span),
-                label: Some(label.clone())
+                label: Some(label.clone()),
             });
         }
 
@@ -308,7 +335,7 @@ impl MultiSpan {
                 span_labels.push(SpanLabel {
                     span,
                     is_primary: true,
-                    label: None
+                    label: None,
                 });
             }
         }
@@ -354,7 +381,10 @@ pub struct FileMap {
     /// The end position of this source in the CodeMap
     pub end_pos: BytePos,
     /// Locations of lines beginnings in the source code
-    #[serde(serialize_with = "serialize_lines", deserialize_with = "deserialize_lines")]
+    #[serde(
+        serialize_with = "serialize_lines",
+        deserialize_with = "deserialize_lines"
+    )]
     pub lines: RefCell<Vec<BytePos>>,
     /// Locations of multi-byte characters in the source code
     pub multibyte_chars: RefCell<Vec<MultiByteChar>>,
@@ -368,7 +398,8 @@ fn invalid_crate() -> u32 {
 }
 
 fn serialize_lines<S>(lines: &RefCell<Vec<BytePos>>, serializer: S) -> Result<S::Ok, S::Error>
-    where S: Serializer
+where
+    S: Serializer,
 {
     let lines = lines.borrow();
 
@@ -385,17 +416,18 @@ fn serialize_lines<S>(lines: &RefCell<Vec<BytePos>>, serializer: S) -> Result<S:
         let max_line_length = if lines.len() == 1 {
             0
         } else {
-            lines.windows(2)
-                    .map(|w| w[1] - w[0])
-                    .map(|bp| bp.to_usize())
-                    .max()
-                    .unwrap()
+            lines
+                .windows(2)
+                .map(|w| w[1] - w[0])
+                .map(|bp| bp.to_usize())
+                .max()
+                .unwrap()
         };
 
         let bytes_per_diff: u8 = match max_line_length {
-            0 ..= 0xFF => 1,
-            0x100 ..= 0xFFFF => 2,
-            _ => 4
+            0..=0xFF => 1,
+            0x100..=0xFFFF => 2,
+            _ => 4,
         };
 
         // Encode the number of bytes used per diff.
@@ -404,14 +436,25 @@ fn serialize_lines<S>(lines: &RefCell<Vec<BytePos>>, serializer: S) -> Result<S:
         // Encode the first element.
         seq.serialize_element(&lines[0])?;
 
-        let diff_iter = (&lines[..]).windows(2)
-                                    .map(|w| (w[1] - w[0]));
+        let diff_iter = (&lines[..]).windows(2).map(|w| (w[1] - w[0]));
 
         match bytes_per_diff {
-            1 => for diff in diff_iter { seq.serialize_element(&(diff.0 as u8))? },
-            2 => for diff in diff_iter { seq.serialize_element(&(diff.0 as u16))? },
-            4 => for diff in diff_iter { seq.serialize_element(&diff.0)? },
-            _ => unreachable!()
+            1 => {
+                for diff in diff_iter {
+                    seq.serialize_element(&(diff.0 as u8))?
+                }
+            }
+            2 => {
+                for diff in diff_iter {
+                    seq.serialize_element(&(diff.0 as u16))?
+                }
+            }
+            4 => {
+                for diff in diff_iter {
+                    seq.serialize_element(&diff.0)?
+                }
+            }
+            _ => unreachable!(),
         }
 
         seq.end()
@@ -419,7 +462,8 @@ fn serialize_lines<S>(lines: &RefCell<Vec<BytePos>>, serializer: S) -> Result<S:
 }
 
 fn deserialize_lines<'de, D>(deserializer: D) -> Result<RefCell<Vec<BytePos>>, D::Error>
-    where D: Deserializer<'de>
+where
+    D: Deserializer<'de>,
 {
     struct LinesVisitor;
 
@@ -431,14 +475,16 @@ fn deserialize_lines<'de, D>(deserializer: D) -> Result<RefCell<Vec<BytePos>>, D
         }
 
         fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-            where A: SeqAccess<'de>
+        where
+            A: SeqAccess<'de>,
         {
             let mut lines = Vec::with_capacity(seq.size_hint().unwrap_or(0));
 
             // Read the number of bytes used per diff.
             if let Some(bytes_per_diff) = seq.next_element::<u8>()? {
                 // Read the first element.
-                let mut line_start: BytePos = seq.next_element()?
+                let mut line_start: BytePos = seq
+                    .next_element()?
                     .ok_or_else(|| de::Error::invalid_length(1, &self))?;
                 lines.push(line_start);
 
@@ -448,8 +494,9 @@ fn deserialize_lines<'de, D>(deserializer: D) -> Result<RefCell<Vec<BytePos>>, D
                     4 => seq.next_element::<u32>()?,
                     _ => {
                         return Err(de::Error::invalid_value(
-                                Unexpected::Unsigned(bytes_per_diff as u64),
-                                &"bytes per diff"));
+                            Unexpected::Unsigned(bytes_per_diff as u64),
+                            &"bytes per diff",
+                        ));
                     }
                 } {
                     line_start = line_start + BytePos(diff);
@@ -503,26 +550,22 @@ impl FileMap {
                     let slice = &src[begin..];
                     match slice.find('\n') {
                         Some(e) => &slice[..e],
-                        None => slice
+                        None => slice,
                     }
                 })
             }
-            None => None
+            None => None,
         }
     }
 
     pub fn record_multibyte_char(&self, pos: BytePos, bytes: usize) {
-        assert!(bytes >=2 && bytes <= 4);
-        let mbc = MultiByteChar {
-            pos,
-            bytes,
-        };
+        assert!(bytes >= 2 && bytes <= 4);
+        let mbc = MultiByteChar { pos, bytes };
         self.multibyte_chars.borrow_mut().push(mbc);
     }
 
     pub fn is_real_file(&self) -> bool {
-        !(self.name.starts_with("<") &&
-          self.name.ends_with(">"))
+        !(self.name.starts_with("<") && self.name.ends_with(">"))
     }
 
     pub fn is_imported(&self) -> bool {
@@ -594,8 +637,13 @@ pub struct CharPos(pub usize);
 // have been unsuccessful
 
 impl Pos for BytePos {
-    fn from_usize(n: usize) -> BytePos { BytePos(n as u32) }
-    fn to_usize(&self) -> usize { let BytePos(n) = *self; n as usize }
+    fn from_usize(n: usize) -> BytePos {
+        BytePos(n as u32)
+    }
+    fn to_usize(&self) -> usize {
+        let BytePos(n) = *self;
+        n as usize
+    }
 }
 
 impl Add for BytePos {
@@ -615,8 +663,13 @@ impl Sub for BytePos {
 }
 
 impl Pos for CharPos {
-    fn from_usize(n: usize) -> CharPos { CharPos(n) }
-    fn to_usize(&self) -> usize { let CharPos(n) = *self; n }
+    fn from_usize(n: usize) -> CharPos {
+        CharPos(n)
+    }
+    fn to_usize(&self) -> usize {
+        let CharPos(n) = *self;
+        n
+    }
 }
 
 impl Add for CharPos {
@@ -647,7 +700,7 @@ pub struct Loc {
     /// The (1-based) line number
     pub line: usize,
     /// The (0-based) column offset
-    pub col: CharPos
+    pub col: CharPos,
 }
 
 /// A source code location used as the result of lookup_char_pos_adj
@@ -663,9 +716,15 @@ pub struct LocWithOpt {
 
 // used to be structural records. Better names, anyone?
 #[derive(Debug)]
-pub struct FileMapAndLine { pub fm: Rc<FileMap>, pub line: usize }
+pub struct FileMapAndLine {
+    pub fm: Rc<FileMap>,
+    pub line: usize,
+}
 #[derive(Debug)]
-pub struct FileMapAndBytePos { pub fm: Rc<FileMap>, pub pos: BytePos }
+pub struct FileMapAndBytePos {
+    pub fm: Rc<FileMap>,
+    pub pos: BytePos,
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct LineInfo {
@@ -681,7 +740,7 @@ pub struct LineInfo {
 
 pub struct FileLines {
     pub file: Rc<FileMap>,
-    pub lines: Vec<LineInfo>
+    pub lines: Vec<LineInfo>,
 }
 
 thread_local!(pub static SPAN_DEBUG: Cell<fn(Span, &mut fmt::Formatter) -> fmt::Result> =
@@ -715,13 +774,13 @@ pub enum SpanSnippetError {
     IllFormedSpan(Span),
     DistinctSources(DistinctSources),
     MalformedForCodemap(MalformedCodemapPositions),
-    SourceNotAvailable { filename: String }
+    SourceNotAvailable { filename: String },
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct DistinctSources {
     pub begin: (String, BytePos),
-    pub end: (String, BytePos)
+    pub end: (String, BytePos),
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -729,7 +788,7 @@ pub struct MalformedCodemapPositions {
     pub name: String,
     pub source_len: usize,
     pub begin_pos: BytePos,
-    pub end_pos: BytePos
+    pub end_pos: BytePos,
 }
 
 // Given a slice of line start positions and a position, returns the index of
@@ -738,7 +797,7 @@ pub struct MalformedCodemapPositions {
 fn lookup_line(lines: &[BytePos], pos: BytePos) -> isize {
     match lines.binary_search(&pos) {
         Ok(line) => line as isize,
-        Err(line) => line as isize - 1
+        Err(line) => line as isize - 1,
     }
 }
 
@@ -748,12 +807,11 @@ mod tests {
 
     #[test]
     fn test_lookup_line() {
-
         let lines = &[BytePos(3), BytePos(17), BytePos(28)];
 
         assert_eq!(lookup_line(lines, BytePos(0)), -1);
-        assert_eq!(lookup_line(lines, BytePos(3)),  0);
-        assert_eq!(lookup_line(lines, BytePos(4)),  0);
+        assert_eq!(lookup_line(lines, BytePos(3)), 0);
+        assert_eq!(lookup_line(lines, BytePos(4)), 0);
 
         assert_eq!(lookup_line(lines, BytePos(16)), 0);
         assert_eq!(lookup_line(lines, BytePos(17)), 1);

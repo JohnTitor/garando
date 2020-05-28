@@ -8,9 +8,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use attr::HasAttrs;
 use ast;
-use codemap::{ExpnInfo, NameAndSpan, ExpnFormat};
+use attr::HasAttrs;
+use codemap::{ExpnFormat, ExpnInfo, NameAndSpan};
 use ext::base::ExtCtxt;
 use ext::build::AstBuilder;
 use parse::parser::PathStyle;
@@ -26,8 +26,9 @@ pub fn collect_derives(cx: &mut ExtCtxt, attrs: &mut Vec<ast::Attribute>) -> Vec
             return true;
         }
 
-        match attr.parse_list(cx.parse_sess,
-                              |parser| parser.parse_path_allowing_meta(PathStyle::Mod)) {
+        match attr.parse_list(cx.parse_sess, |parser| {
+            parser.parse_path_allowing_meta(PathStyle::Mod)
+        }) {
             Ok(ref traits) if traits.is_empty() => {
                 cx.span_warn(attr.span, "empty trait list in `derive`");
                 false
@@ -46,7 +47,8 @@ pub fn collect_derives(cx: &mut ExtCtxt, attrs: &mut Vec<ast::Attribute>) -> Vec
 }
 
 pub fn add_derived_markers<T>(cx: &mut ExtCtxt, span: Span, traits: &[ast::Path], item: T) -> T
-    where T: HasAttrs,
+where
+    T: HasAttrs,
 {
     let (mut names, mut pretty_name) = (HashSet::new(), "derive(".to_owned());
     for (i, path) in traits.iter().enumerate() {
@@ -67,7 +69,10 @@ pub fn add_derived_markers<T>(cx: &mut ExtCtxt, span: Span, traits: &[ast::Path]
         },
     });
 
-    let span = Span { ctxt: cx.backtrace(), ..span };
+    let span = Span {
+        ctxt: cx.backtrace(),
+        ..span
+    };
     item.map_attrs(|mut attrs| {
         if names.contains(&Symbol::intern("Eq")) && names.contains(&Symbol::intern("PartialEq")) {
             let meta = cx.meta_word(span, Symbol::intern("structural_match"));

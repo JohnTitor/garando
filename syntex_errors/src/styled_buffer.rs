@@ -30,8 +30,10 @@ impl StyledBuffer {
         if row < self.text.len() {
             for i in row + 1..self.text.len() {
                 for j in 0..self.text[i].len() {
-                    if self.text[row].len() > j && self.text[row][j] == '\t' &&
-                       self.text[i][j] == ' ' {
+                    if self.text[row].len() > j
+                        && self.text[row][j] == '\t'
+                        && self.text[i][j] == ' '
+                    {
                         self.text[i][j] = '\t';
                     }
                 }

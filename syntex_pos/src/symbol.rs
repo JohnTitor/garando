@@ -18,7 +18,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Ident {
@@ -28,7 +28,10 @@ pub struct Ident {
 
 impl Ident {
     pub fn with_empty_ctxt(name: Symbol) -> Ident {
-        Ident { name, ctxt: SyntaxContext::empty() }
+        Ident {
+            name,
+            ctxt: SyntaxContext::empty(),
+        }
     }
 
     /// Maps a string to an identifier with an empty syntax context.
@@ -37,7 +40,10 @@ impl Ident {
     }
 
     pub fn modern(self) -> Ident {
-        Ident { name: self.name, ctxt: self.ctxt.modern() }
+        Ident {
+            name: self.name,
+            ctxt: self.ctxt.modern(),
+        }
     }
 }
 
@@ -55,11 +61,13 @@ impl fmt::Display for Ident {
 
 impl Serialize for Ident {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         if self.ctxt.modern() == SyntaxContext::empty() {
             serializer.serialize_str(&self.name.as_str())
-        } else { // FIXME(jseyfried) intercrate hygiene
+        } else {
+            // FIXME(jseyfried) intercrate hygiene
             let mut string = "#".to_owned();
             string.push_str(&self.name.as_str());
             serializer.serialize_str(&string)
@@ -69,12 +77,14 @@ impl Serialize for Ident {
 
 impl<'de> Deserialize<'de> for Ident {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         let string = String::deserialize(deserializer)?;
         Ok(if !string.starts_with('#') {
             Ident::from_str(&string)
-        } else { // FIXME(jseyfried) intercrate hygiene
+        } else {
+            // FIXME(jseyfried) intercrate hygiene
             Ident::with_empty_ctxt(Symbol::gensym(&string[1..]))
         })
     }
@@ -110,7 +120,7 @@ impl Symbol {
     pub fn as_str(self) -> InternedString {
         with_interner(|interner| unsafe {
             InternedString {
-                string: ::std::mem::transmute::<&str, &str>(interner.get(self))
+                string: ::std::mem::transmute::<&str, &str>(interner.get(self)),
             }
         })
     }
@@ -134,7 +144,8 @@ impl fmt::Display for Symbol {
 
 impl Serialize for Symbol {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&self.as_str())
     }
@@ -142,13 +153,14 @@ impl Serialize for Symbol {
 
 impl<'de> Deserialize<'de> for Symbol {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         String::deserialize(deserializer).map(|s| Symbol::intern(&s))
     }
 }
 
-impl<T: ::std::ops::Deref<Target=str>> PartialEq<T> for Symbol {
+impl<T: ::std::ops::Deref<Target = str>> PartialEq<T> for Symbol {
     fn eq(&self, other: &T) -> bool {
         self.as_str() == other.deref()
     }
@@ -343,7 +355,10 @@ pub struct InternedString {
     string: &'static str,
 }
 
-impl<U: ?Sized> ::std::convert::AsRef<U> for InternedString where str: ::std::convert::AsRef<U> {
+impl<U: ?Sized> ::std::convert::AsRef<U> for InternedString
+where
+    str: ::std::convert::AsRef<U>,
+{
     fn as_ref(&self) -> &U {
         self.string.as_ref()
     }
@@ -384,7 +399,9 @@ impl<'a> ::std::cmp::PartialEq<InternedString> for &'a String {
 
 impl ::std::ops::Deref for InternedString {
     type Target = str;
-    fn deref(&self) -> &str { self.string }
+    fn deref(&self) -> &str {
+        self.string
+    }
 }
 
 impl fmt::Debug for InternedString {
@@ -401,7 +418,8 @@ impl fmt::Display for InternedString {
 
 impl<'de> Deserialize<'de> for InternedString {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         Symbol::deserialize(deserializer).map(Symbol::as_str)
     }
@@ -409,7 +427,8 @@ impl<'de> Deserialize<'de> for InternedString {
 
 impl Serialize for InternedString {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         serializer.serialize_str(self.string)
     }
@@ -425,7 +444,7 @@ mod tests {
         // first one is zero:
         assert_eq!(i.intern("dog"), Symbol(0));
         // re-use gets the same entry:
-        assert_eq!(i.intern ("dog"), Symbol(0));
+        assert_eq!(i.intern("dog"), Symbol(0));
         // different string gets a different #:
         assert_eq!(i.intern("cat"), Symbol(1));
         assert_eq!(i.intern("cat"), Symbol(1));

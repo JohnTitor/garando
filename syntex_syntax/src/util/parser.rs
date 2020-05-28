@@ -7,9 +7,9 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use parse::token::{Token, BinOpToken};
-use symbol::keywords;
 use ast::BinOpKind;
+use parse::token::{BinOpToken, Token};
+use symbol::keywords;
 
 /// Associative operator with precedence.
 ///
@@ -75,7 +75,7 @@ pub enum Fixity {
     /// The operator is right-associative
     Right,
     /// The operator is not associative
-    None
+    None,
 }
 
 impl AssocOp {
@@ -108,7 +108,7 @@ impl AssocOp {
             Token::DotDotDot => Some(DotDotDot),
             Token::Colon => Some(Colon),
             _ if t.is_keyword(keywords::As) => Some(As),
-            _ => None
+            _ => None,
         }
     }
 
@@ -133,7 +133,7 @@ impl AssocOp {
             BinOpKind::BitXor => BitXor,
             BinOpKind::BitOr => BitOr,
             BinOpKind::And => LAnd,
-            BinOpKind::Or => LOr
+            BinOpKind::Or => LOr,
         }
     }
 
@@ -163,10 +163,10 @@ impl AssocOp {
         // NOTE: it is a bug to have an operators that has same precedence but different fixities!
         match *self {
             Inplace | Assign | AssignOp(_) => Fixity::Right,
-            As | Multiply | Divide | Modulus | Add | Subtract | ShiftLeft | ShiftRight | BitAnd |
-            BitXor | BitOr | Less | Greater | LessEqual | GreaterEqual | Equal | NotEqual |
-            LAnd | LOr | Colon => Fixity::Left,
-            DotDot | DotDotDot => Fixity::None
+            As | Multiply | Divide | Modulus | Add | Subtract | ShiftLeft | ShiftRight | BitAnd
+            | BitXor | BitOr | Less | Greater | LessEqual | GreaterEqual | Equal | NotEqual
+            | LAnd | LOr | Colon => Fixity::Left,
+            DotDot | DotDotDot => Fixity::None,
         }
     }
 
@@ -174,9 +174,9 @@ impl AssocOp {
         use self::AssocOp::*;
         match *self {
             Less | Greater | LessEqual | GreaterEqual | Equal | NotEqual => true,
-            Inplace | Assign | AssignOp(_) | As | Multiply | Divide | Modulus | Add | Subtract |
-            ShiftLeft | ShiftRight | BitAnd | BitXor | BitOr | LAnd | LOr |
-            DotDot | DotDotDot | Colon => false
+            Inplace | Assign | AssignOp(_) | As | Multiply | Divide | Modulus | Add | Subtract
+            | ShiftLeft | ShiftRight | BitAnd | BitXor | BitOr | LAnd | LOr | DotDot
+            | DotDotDot | Colon => false,
         }
     }
 
@@ -184,9 +184,9 @@ impl AssocOp {
         use self::AssocOp::*;
         match *self {
             Assign | AssignOp(_) | Inplace => true,
-            Less | Greater | LessEqual | GreaterEqual | Equal | NotEqual | As | Multiply | Divide |
-            Modulus | Add | Subtract | ShiftLeft | ShiftRight | BitAnd | BitXor | BitOr | LAnd |
-            LOr | DotDot | DotDotDot | Colon => false
+            Less | Greater | LessEqual | GreaterEqual | Equal | NotEqual | As | Multiply
+            | Divide | Modulus | Add | Subtract | ShiftLeft | ShiftRight | BitAnd | BitXor
+            | BitOr | LAnd | LOr | DotDot | DotDotDot | Colon => false,
         }
     }
 
@@ -211,7 +211,7 @@ impl AssocOp {
             BitOr => Some(BinOpKind::BitOr),
             LAnd => Some(BinOpKind::And),
             LOr => Some(BinOpKind::Or),
-            Inplace | Assign | AssignOp(_) | As | DotDot | DotDotDot | Colon => None
+            Inplace | Assign | AssignOp(_) | As | DotDot | DotDotDot | Colon => None,
         }
     }
 }

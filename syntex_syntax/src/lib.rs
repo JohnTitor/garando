@@ -14,19 +14,24 @@
 //!
 //! This API is completely unstable and subject to change.
 
-#![doc(html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
-       html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
-       html_root_url = "https://docs.rs/syntex_syntax/0.59.1",
-       test(attr(deny(warnings))))]
+#![doc(
+    html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
+    html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
+    html_root_url = "https://docs.rs/syntex_syntax/0.59.1",
+    test(attr(deny(warnings)))
+)]
 
-#[macro_use] extern crate log;
-#[macro_use] extern crate bitflags;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate bitflags;
 pub extern crate syntex_errors as errors;
 extern crate syntex_pos as syntax_pos;
 mod rustc_data_structures;
 
 extern crate serde;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 extern crate unicode_xid;
 
@@ -37,9 +42,9 @@ extern crate unicode_xid;
 // Exported for syntax_ext, not meant for general use.
 #[macro_export]
 macro_rules! panictry {
-    ($e:expr) => ({
-        use std::result::Result::{Ok, Err};
+    ($e:expr) => {{
         use errors::FatalError;
+        use std::result::Result::{Err, Ok};
         match $e {
             Ok(e) => e,
             Err(mut e) => {
@@ -47,7 +52,7 @@ macro_rules! panictry {
                 panic!(FatalError);
             }
         }
-    })
+    }};
 }
 
 #[macro_export]
@@ -57,15 +62,15 @@ macro_rules! unwrap_or {
             Some(x) => x,
             None => $default,
         }
-    }
+    };
 }
 
 #[macro_use]
 pub mod diagnostics {
     #[macro_use]
     pub mod macros;
-    pub mod plugin;
     pub mod metadata;
+    pub mod plugin;
 }
 
 // NB: This module needs to be declared first so diagnostics are
@@ -74,12 +79,12 @@ pub mod diagnostic_list;
 
 pub mod util {
     pub mod lev_distance;
+    pub mod move_map;
     pub mod node_count;
     pub mod parser;
     #[cfg(test)]
     pub mod parser_testing;
     pub mod small_vector;
-    pub mod move_map;
 
     mod thin_vec;
     pub use self::thin_vec::ThinVec;
@@ -91,9 +96,9 @@ pub mod util {
 pub mod json;
 
 pub mod syntax {
+    pub use ast;
     pub use ext;
     pub use parse;
-    pub use ast;
 }
 
 pub mod abi;
@@ -131,10 +136,10 @@ pub mod ext {
     pub mod source_util;
 
     pub mod tt {
-        pub mod transcribe;
         pub mod macro_parser;
         pub mod macro_rules;
         pub mod quoted;
+        pub mod transcribe;
     }
 }
 
