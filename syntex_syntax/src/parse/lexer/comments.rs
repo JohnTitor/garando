@@ -21,6 +21,8 @@ use crate::syntax_pos::{BytePos, CharPos, Pos};
 use std::io::Read;
 use std::usize;
 
+use log::debug;
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum CommentStyle {
     /// No code on either side of each line of the comment

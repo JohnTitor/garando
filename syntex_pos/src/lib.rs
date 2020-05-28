@@ -28,11 +28,9 @@ use std::rc::Rc;
 
 use std::fmt;
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
 use serde::de::{self, Deserializer, SeqAccess, Unexpected, Visitor};
 use serde::ser::{SerializeSeq, Serializer};
+use serde::{Deserialize, Serialize};
 
 pub mod hygiene;
 pub use crate::hygiene::{ExpnFormat, ExpnInfo, NameAndSpan, SyntaxContext};

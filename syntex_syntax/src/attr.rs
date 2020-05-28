@@ -34,6 +34,7 @@ use crate::util::ThinVec;
 use std::cell::{Cell, RefCell};
 use std::iter;
 
+use log::debug;
 use serde::{Deserialize, Serialize};
 
 thread_local! {

@@ -37,6 +37,8 @@ use crate::visit::{self, FnKind, Visitor};
 
 use std::env;
 
+use log::debug;
+
 macro_rules! setter {
     ($field: ident) => {{
         fn f(features: &mut Features) -> &mut bool {

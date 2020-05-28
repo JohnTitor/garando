@@ -14,9 +14,7 @@
     html_root_url = "https://docs.rs/syntex_errors/0.59.1"
 )]
 
-extern crate libc;
-extern crate syntex_pos as syntax_pos;
-extern crate term;
+use syntex_pos as syntax_pos;
 
 pub use crate::emitter::ColorConfig;
 

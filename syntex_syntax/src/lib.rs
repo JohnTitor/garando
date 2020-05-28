@@ -21,12 +21,8 @@
     test(attr(deny(warnings)))
 )]
 
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate bitflags;
-pub extern crate syntex_errors as errors;
-extern crate syntex_pos as syntax_pos;
+pub use syntex_errors as errors;
+use syntex_pos as syntax_pos;
 mod rustc_data_structures;
 
 // A variant of 'try!' that panics on an Err. This is used as a crutch on the
