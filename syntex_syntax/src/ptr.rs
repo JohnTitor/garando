@@ -41,7 +41,7 @@ use std::iter::FromIterator;
 use std::ops::Deref;
 use std::{mem, ptr, slice, vec};
 
-use rustc_data_structures::stable_hasher::{HashStable, StableHasher, StableHasherResult};
+use crate::rustc_data_structures::stable_hasher::{HashStable, StableHasher, StableHasherResult};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 

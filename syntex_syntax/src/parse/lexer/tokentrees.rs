@@ -8,11 +8,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use parse::lexer::StringReader;
-use parse::{token, PResult};
-use print::pprust::token_to_string;
-use syntax_pos::Span;
-use tokenstream::{Delimited, TokenStream, TokenTree};
+use crate::parse::lexer::StringReader;
+use crate::parse::{token, PResult};
+use crate::print::pprust::token_to_string;
+use crate::syntax_pos::Span;
+use crate::tokenstream::{Delimited, TokenStream, TokenTree};
 
 impl<'a> StringReader<'a> {
     // Parse a stream of tokens into a list of `TokenTree`s, up to an `Eof`.

@@ -25,15 +25,15 @@
 use self::AttributeGate::*;
 use self::AttributeType::*;
 
-use abi::Abi;
-use ast::{self, NodeId, PatKind, RangeEnd};
-use attr;
-use codemap::Spanned;
-use errors::{DiagnosticBuilder, FatalError, Handler};
-use parse::ParseSess;
-use symbol::Symbol;
-use syntax_pos::Span;
-use visit::{self, FnKind, Visitor};
+use crate::abi::Abi;
+use crate::ast::{self, NodeId, PatKind, RangeEnd};
+use crate::attr;
+use crate::codemap::Spanned;
+use crate::errors::{DiagnosticBuilder, FatalError, Handler};
+use crate::parse::ParseSess;
+use crate::symbol::Symbol;
+use crate::syntax_pos::Span;
+use crate::visit::{self, FnKind, Visitor};
 
 use std::env;
 
@@ -1355,8 +1355,8 @@ impl<'a> PostExpansionVisitor<'a> {
 }
 
 fn contains_novel_literal(item: &ast::MetaItem) -> bool {
-    use ast::MetaItemKind::*;
-    use ast::NestedMetaItemKind::*;
+    use crate::ast::MetaItemKind::*;
+    use crate::ast::NestedMetaItemKind::*;
 
     match item.node {
         Word => false,

@@ -8,23 +8,23 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ext::base::{DummyResult, ExtCtxt, MacResult, SyntaxExtension};
-use ext::base::{NormalTT, TTMacroExpander};
-use ext::expand::{Expansion, ExpansionKind};
-use ext::tt::macro_parser::{parse, parse_failure_msg};
-use ext::tt::macro_parser::{Error, Failure, Success};
-use ext::tt::macro_parser::{MatchedNonterminal, MatchedSeq};
-use ext::tt::quoted;
-use ext::tt::transcribe::transcribe;
-use feature_gate::{self, emit_feature_err, Features, GateIssue};
-use parse::parser::Parser;
-use parse::token::Token::*;
-use parse::token::{self, NtTT};
-use parse::{Directory, ParseSess};
-use symbol::Symbol;
-use syntax_pos::{Span, DUMMY_SP};
-use tokenstream::{TokenStream, TokenTree};
-use {ast, attr};
+use crate::ext::base::{DummyResult, ExtCtxt, MacResult, SyntaxExtension};
+use crate::ext::base::{NormalTT, TTMacroExpander};
+use crate::ext::expand::{Expansion, ExpansionKind};
+use crate::ext::tt::macro_parser::{parse, parse_failure_msg};
+use crate::ext::tt::macro_parser::{Error, Failure, Success};
+use crate::ext::tt::macro_parser::{MatchedNonterminal, MatchedSeq};
+use crate::ext::tt::quoted;
+use crate::ext::tt::transcribe::transcribe;
+use crate::feature_gate::{self, emit_feature_err, Features, GateIssue};
+use crate::parse::parser::Parser;
+use crate::parse::token::Token::*;
+use crate::parse::token::{self, NtTT};
+use crate::parse::{Directory, ParseSess};
+use crate::symbol::Symbol;
+use crate::syntax_pos::{Span, DUMMY_SP};
+use crate::tokenstream::{TokenStream, TokenTree};
+use crate::{ast, attr};
 
 use std::cell::RefCell;
 use std::collections::hash_map::Entry;
@@ -953,7 +953,7 @@ fn is_legal_fragment_specifier(
 
 fn quoted_tt_to_string(tt: &quoted::TokenTree) -> String {
     match *tt {
-        quoted::TokenTree::Token(_, ref tok) => ::print::pprust::token_to_string(tok),
+        quoted::TokenTree::Token(_, ref tok) => crate::print::pprust::token_to_string(tok),
         quoted::TokenTree::MetaVarDecl(_, name, kind) => format!("${}:{}", name, kind),
         _ => panic!(
             "unexpected quoted::TokenTree::{{Sequence or Delimited}} \

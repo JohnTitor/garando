@@ -10,7 +10,7 @@
 
 //! Common routines shared by parser mods
 
-use parse::token;
+use crate::parse::token;
 
 /// `SeqSep` : a sequence separator (token)
 /// and whether a trailing separator is allowed.

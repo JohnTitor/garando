@@ -8,30 +8,30 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast::{self, Block, Ident, NodeId, PatKind, Path};
-use ast::{ItemKind, MacStmtStyle, StmtKind};
-use attr::{self, HasAttrs};
-use codemap::{ExpnInfo, MacroAttribute, MacroBang, NameAndSpan};
-use config::{is_test_or_bench, StripUnconfigured};
-use errors::FatalError;
-use ext::base::*;
-use ext::derive::{add_derived_markers, collect_derives};
-use ext::hygiene::Mark;
-use ext::placeholders::{placeholder, PlaceholderExpander};
-use feature_gate::{self, is_builtin_attr, Features};
-use fold;
-use fold::*;
-use parse::parser::Parser;
-use parse::{filemap_to_stream, token, DirectoryOwnership, PResult, ParseSess};
-use print::pprust;
-use ptr::P;
-use std_inject;
-use symbol::keywords;
-use symbol::Symbol;
-use syntax_pos::{Span, DUMMY_SP};
-use tokenstream::TokenStream;
-use util::small_vector::SmallVector;
-use visit::Visitor;
+use crate::ast::{self, Block, Ident, NodeId, PatKind, Path};
+use crate::ast::{ItemKind, MacStmtStyle, StmtKind};
+use crate::attr::{self, HasAttrs};
+use crate::codemap::{ExpnInfo, MacroAttribute, MacroBang, NameAndSpan};
+use crate::config::{is_test_or_bench, StripUnconfigured};
+use crate::errors::FatalError;
+use crate::ext::base::*;
+use crate::ext::derive::{add_derived_markers, collect_derives};
+use crate::ext::hygiene::Mark;
+use crate::ext::placeholders::{placeholder, PlaceholderExpander};
+use crate::feature_gate::{self, is_builtin_attr, Features};
+use crate::fold;
+use crate::fold::*;
+use crate::parse::parser::Parser;
+use crate::parse::{filemap_to_stream, token, DirectoryOwnership, PResult, ParseSess};
+use crate::print::pprust;
+use crate::ptr::P;
+use crate::std_inject;
+use crate::symbol::keywords;
+use crate::symbol::Symbol;
+use crate::syntax_pos::{Span, DUMMY_SP};
+use crate::tokenstream::TokenStream;
+use crate::util::small_vector::SmallVector;
+use crate::visit::Visitor;
 
 use std::collections::HashMap;
 use std::mem;
@@ -111,8 +111,8 @@ macro_rules! expansions {
             })*)*
         }
 
-        impl<'a> MacResult for ::ext::tt::macro_rules::ParserAnyMacro<'a> {
-            $(fn $make(self: Box<::ext::tt::macro_rules::ParserAnyMacro<'a>>) -> Option<$ty> {
+        impl<'a> MacResult for crate::ext::tt::macro_rules::ParserAnyMacro<'a> {
+            $(fn $make(self: Box<crate::ext::tt::macro_rules::ParserAnyMacro<'a>>) -> Option<$ty> {
                 Some(self.make(ExpansionKind::$kind).$make())
             })*
         }

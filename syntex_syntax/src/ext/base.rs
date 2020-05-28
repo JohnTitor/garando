@@ -10,25 +10,25 @@
 
 pub use self::SyntaxExtension::{IdentTT, MultiDecorator, MultiModifier, NormalTT};
 
-use ast::{self, Attribute, MetaItem, Name, PatKind};
-use attr::HasAttrs;
-use codemap::{self, respan, CodeMap, Spanned};
-use errors::DiagnosticBuilder;
-use ext::expand::{self, Expansion, Invocation};
-use ext::hygiene::{Mark, SyntaxContext};
-use fold::{self, Folder};
-use parse::token;
-use parse::{self, parser, DirectoryOwnership};
-use ptr::P;
-use symbol::Symbol;
-use syntax_pos::{Span, DUMMY_SP};
-use util::small_vector::SmallVector;
+use crate::ast::{self, Attribute, MetaItem, Name, PatKind};
+use crate::attr::HasAttrs;
+use crate::codemap::{self, respan, CodeMap, Spanned};
+use crate::errors::DiagnosticBuilder;
+use crate::ext::expand::{self, Expansion, Invocation};
+use crate::ext::hygiene::{Mark, SyntaxContext};
+use crate::fold::{self, Folder};
+use crate::parse::token;
+use crate::parse::{self, parser, DirectoryOwnership};
+use crate::ptr::P;
+use crate::symbol::Symbol;
+use crate::syntax_pos::{Span, DUMMY_SP};
+use crate::util::small_vector::SmallVector;
 
 use std::collections::HashMap;
 use std::default::Default;
 use std::path::PathBuf;
 use std::rc::Rc;
-use tokenstream::{self, TokenStream};
+use crate::tokenstream::{self, TokenStream};
 
 #[derive(Debug, Clone)]
 pub enum Annotatable {

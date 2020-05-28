@@ -23,10 +23,10 @@
 //! instance, a walker looking for item names in a module will miss all of
 //! those that are created by the expansion of a macro.
 
-use abi::Abi;
-use ast::*;
-use codemap::Spanned;
-use syntax_pos::Span;
+use crate::abi::Abi;
+use crate::ast::*;
+use crate::codemap::Spanned;
+use crate::syntax_pos::Span;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum FnKind<'a> {

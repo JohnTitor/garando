@@ -8,14 +8,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast::Ident;
-use errors::Handler;
-use ext::tt::macro_parser::{MatchedNonterminal, MatchedSeq, NamedMatch};
-use ext::tt::quoted;
-use parse::token::{self, NtTT, SubstNt, Token};
-use syntax_pos::{Span, DUMMY_SP};
-use tokenstream::{Delimited, TokenStream, TokenTree};
-use util::small_vector::SmallVector;
+use crate::ast::Ident;
+use crate::errors::Handler;
+use crate::ext::tt::macro_parser::{MatchedNonterminal, MatchedSeq, NamedMatch};
+use crate::ext::tt::quoted;
+use crate::parse::token::{self, NtTT, SubstNt, Token};
+use crate::syntax_pos::{Span, DUMMY_SP};
+use crate::tokenstream::{Delimited, TokenStream, TokenTree};
+use crate::util::small_vector::SmallVector;
 
 use std::collections::HashMap;
 use std::mem;

@@ -14,10 +14,10 @@ pub use self::Lit::*;
 pub use self::Nonterminal::*;
 pub use self::Token::*;
 
-use ast::{self};
-use ptr::P;
-use symbol::keywords;
-use tokenstream::TokenTree;
+use crate::ast::{self};
+use crate::ptr::P;
+use crate::symbol::keywords;
+use crate::tokenstream::TokenTree;
 
 use std::fmt;
 use std::rc::Rc;

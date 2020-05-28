@@ -13,8 +13,8 @@
 //!
 //! Obsolete syntax that becomes too hard to parse can be removed.
 
-use parse::parser;
-use syntax_pos::Span;
+use crate::parse::parser;
+use crate::syntax_pos::Span;
 
 /// The specific types of unsupported syntax
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]

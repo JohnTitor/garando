@@ -18,9 +18,9 @@ use std::error::Error;
 use std::fs::{create_dir_all, remove_file, File};
 use std::path::PathBuf;
 
-use diagnostics::plugin::{ErrorInfo, ErrorMap};
-use ext::base::ExtCtxt;
-use syntax_pos::Span;
+use crate::diagnostics::plugin::{ErrorInfo, ErrorMap};
+use crate::ext::base::ExtCtxt;
+use crate::syntax_pos::Span;
 
 use serde_json;
 

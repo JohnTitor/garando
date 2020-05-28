@@ -8,14 +8,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast;
-use attr;
-use codemap::{self, ExpnInfo, MacroAttribute, NameAndSpan};
-use ext::hygiene::{Mark, SyntaxContext};
-use ptr::P;
-use symbol::{keywords, Symbol};
-use syntax_pos::{Span, DUMMY_SP};
-use tokenstream::TokenStream;
+use crate::ast;
+use crate::attr;
+use crate::codemap::{self, ExpnInfo, MacroAttribute, NameAndSpan};
+use crate::ext::hygiene::{Mark, SyntaxContext};
+use crate::ptr::P;
+use crate::symbol::{keywords, Symbol};
+use crate::syntax_pos::{Span, DUMMY_SP};
+use crate::tokenstream::TokenStream;
 
 /// Craft a span that will be ignored by the stability lint's
 /// call to codemap's `is_internal` check.

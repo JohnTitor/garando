@@ -9,7 +9,7 @@
 // except according to those terms.
 
 use std::cmp;
-use symbol::Symbol;
+use crate::symbol::Symbol;
 
 /// To find the Levenshtein distance between two strings
 pub fn lev_distance(a: &str, b: &str) -> usize {

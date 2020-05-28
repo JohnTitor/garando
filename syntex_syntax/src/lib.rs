@@ -43,7 +43,7 @@ extern crate unicode_xid;
 #[macro_export]
 macro_rules! panictry {
     ($e:expr) => {{
-        use errors::FatalError;
+        use crate::errors::FatalError;
         use std::result::Result::{Err, Ok};
         match $e {
             Ok(e) => e,
@@ -96,9 +96,9 @@ pub mod util {
 pub mod json;
 
 pub mod syntax {
-    pub use ast;
-    pub use ext;
-    pub use parse;
+    pub use crate::ast;
+    pub use crate::ext;
+    pub use crate::parse;
 }
 
 pub mod abi;
@@ -115,7 +115,7 @@ pub mod ptr;
 pub mod show_span;
 pub mod std_inject;
 pub mod str;
-pub use syntax_pos::symbol;
+pub use crate::syntax_pos::symbol;
 pub mod test;
 pub mod tokenstream;
 pub mod visit;
@@ -126,7 +126,7 @@ pub mod print {
 }
 
 pub mod ext {
-    pub use syntax_pos::hygiene;
+    pub use crate::syntax_pos::hygiene;
     pub mod base;
     pub mod build;
     pub mod derive;

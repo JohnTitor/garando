@@ -15,32 +15,32 @@
 
 use self::HasTestSignature::*;
 
-use attr::{self, HasAttrs};
+use crate::attr::{self, HasAttrs};
 use std::iter;
 use std::mem;
 use std::rc::Rc;
 use std::slice;
 use std::vec;
-use syntax_pos::{self, BytePos, FileMap, Span, DUMMY_SP, NO_EXPANSION};
+use crate::syntax_pos::{self, BytePos, FileMap, Span, DUMMY_SP, NO_EXPANSION};
 
-use ast::{self, Ident};
-use codemap::{self, dummy_spanned, CodeMap, ExpnInfo, MacroAttribute, NameAndSpan};
-use config;
-use entry::{self, EntryPointType};
-use errors;
-use errors::snippet::SnippetData;
-use ext::base::{ExtCtxt, Resolver};
-use ext::build::AstBuilder;
-use ext::expand::ExpansionConfig;
-use ext::hygiene::{Mark, SyntaxContext};
-use fold;
-use fold::Folder;
-use parse::{token, ParseSess};
-use print::pprust;
-use ptr::P;
-use symbol::{self, keywords, Symbol};
-use util::move_map::MoveMap;
-use util::small_vector::SmallVector;
+use crate::ast::{self, Ident};
+use crate::codemap::{self, dummy_spanned, CodeMap, ExpnInfo, MacroAttribute, NameAndSpan};
+use crate::config;
+use crate::entry::{self, EntryPointType};
+use crate::errors;
+use crate::errors::snippet::SnippetData;
+use crate::ext::base::{ExtCtxt, Resolver};
+use crate::ext::build::AstBuilder;
+use crate::ext::expand::ExpansionConfig;
+use crate::ext::hygiene::{Mark, SyntaxContext};
+use crate::fold;
+use crate::fold::Folder;
+use crate::parse::{token, ParseSess};
+use crate::print::pprust;
+use crate::ptr::P;
+use crate::symbol::{self, keywords, Symbol};
+use crate::util::move_map::MoveMap;
+use crate::util::small_vector::SmallVector;
 
 enum ShouldPanic {
     No,
@@ -556,7 +556,7 @@ fn mk_main(cx: &mut TestCtxt) -> P<ast::Item> {
         ecx.fn_decl(vec![], main_ret_ty),
         ast::Unsafety::Normal,
         dummy_spanned(ast::Constness::NotConst),
-        ::abi::Abi::Rust,
+        crate::abi::Abi::Rust,
         ast::Generics::default(),
         main_body,
     );

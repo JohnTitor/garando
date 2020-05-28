@@ -8,14 +8,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast;
-use attr;
-use codemap::respan;
-use parse::common::SeqSep;
-use parse::parser::{Parser, PathStyle, TokenType};
-use parse::token::{self, Nonterminal};
-use parse::PResult;
-use tokenstream::TokenStream;
+use crate::ast;
+use crate::attr;
+use crate::codemap::respan;
+use crate::parse::common::SeqSep;
+use crate::parse::parser::{Parser, PathStyle, TokenType};
+use crate::parse::token::{self, Nonterminal};
+use crate::parse::PResult;
+use crate::tokenstream::TokenStream;
 
 #[derive(PartialEq, Eq, Debug)]
 enum InnerAttributeParsePolicy<'a> {

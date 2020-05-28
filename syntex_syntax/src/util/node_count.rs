@@ -10,9 +10,9 @@
 
 // Simply gives a rought count of the number of nodes in an AST.
 
-use ast::*;
-use syntax_pos::Span;
-use visit::*;
+use crate::ast::*;
+use crate::syntax_pos::Span;
+use crate::visit::*;
 
 pub struct NodeCounter {
     pub count: usize,

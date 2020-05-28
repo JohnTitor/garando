@@ -72,12 +72,12 @@ impl<T> MoveMap<T> for Vec<T> {
     }
 }
 
-impl<T> MoveMap<T> for ::ptr::P<[T]> {
+impl<T> MoveMap<T> for crate::ptr::P<[T]> {
     fn move_flat_map<F, I>(self, f: F) -> Self
     where
         F: FnMut(T) -> I,
         I: IntoIterator<Item = T>,
     {
-        ::ptr::P::from_vec(self.into_vec().move_flat_map(f))
+        crate::ptr::P::from_vec(self.into_vec().move_flat_map(f))
     }
 }

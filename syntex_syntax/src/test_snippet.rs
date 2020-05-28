@@ -8,15 +8,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use codemap::{CodeMap, FilePathMapping};
-use errors::emitter::EmitterWriter;
-use errors::Handler;
+use crate::codemap::{CodeMap, FilePathMapping};
+use crate::errors::emitter::EmitterWriter;
+use crate::errors::Handler;
 use std::io;
 use std::io::prelude::*;
 use std::rc::Rc;
 use std::str;
 use std::sync::{Arc, Mutex};
-use syntax_pos::{BytePos, MultiSpan, Span, NO_EXPANSION};
+use crate::syntax_pos::{BytePos, MultiSpan, Span, NO_EXPANSION};
 
 /// Identify a position in the text by the Nth occurrence of a string.
 struct Position {

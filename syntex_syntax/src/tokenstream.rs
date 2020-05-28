@@ -22,13 +22,13 @@
 //! and a borrowed `TokenStream` is sufficient to build an owned `TokenStream` without taking
 //! ownership of the original.
 
-use ext::base;
-use ext::tt::{macro_parser, quoted};
-use parse::token::{self, Token};
-use parse::Directory;
-use print::pprust;
-use syntax_pos::{BytePos, Span, DUMMY_SP};
-use util::RcSlice;
+use crate::ext::base;
+use crate::ext::tt::{macro_parser, quoted};
+use crate::parse::token::{self, Token};
+use crate::parse::Directory;
+use crate::print::pprust;
+use crate::syntax_pos::{BytePos, Span, DUMMY_SP};
+use crate::util::RcSlice;
 
 use std::hash::{self, Hash};
 use std::{fmt, iter, mem};
@@ -457,10 +457,10 @@ impl Hash for ThinTokenStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use parse::token::Token;
-    use syntax::ast::Ident;
-    use syntax_pos::{BytePos, Span, NO_EXPANSION};
-    use util::parser_testing::string_to_stream;
+    use crate::parse::token::Token;
+    use crate::syntax::ast::Ident;
+    use crate::syntax_pos::{BytePos, Span, NO_EXPANSION};
+    use crate::util::parser_testing::string_to_stream;
 
     fn string_to_ts(string: &str) -> TokenStream {
         string_to_stream(string.to_owned())

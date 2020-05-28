@@ -8,15 +8,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast::{self, Arg, Arm, Block, Expr, Item, Pat, Stmt, Ty};
-use ext::base;
-use ext::base::ExtCtxt;
-use ext::build::AstBuilder;
-use parse::parser::{Parser, PathStyle};
-use parse::token;
-use ptr::P;
-use syntax_pos::Span;
-use tokenstream::{TokenStream, TokenTree};
+use crate::ast::{self, Arg, Arm, Block, Expr, Item, Pat, Stmt, Ty};
+use crate::ext::base;
+use crate::ext::base::ExtCtxt;
+use crate::ext::build::AstBuilder;
+use crate::parse::parser::{Parser, PathStyle};
+use crate::parse::token;
+use crate::ptr::P;
+use crate::syntax_pos::Span;
+use crate::tokenstream::{TokenStream, TokenTree};
 
 /// Quasiquoting works via token trees.
 ///
@@ -26,19 +26,19 @@ use tokenstream::{TokenStream, TokenTree};
 /// as antiquotes (splices).
 
 pub mod rt {
-    use ast;
-    use codemap::Spanned;
-    use ext::base::ExtCtxt;
-    use parse::{self, classify, token};
-    use ptr::P;
+    use crate::ast;
+    use crate::codemap::Spanned;
+    use crate::ext::base::ExtCtxt;
+    use crate::parse::{self, classify, token};
+    use crate::ptr::P;
     use std::rc::Rc;
-    use symbol::Symbol;
+    use crate::symbol::Symbol;
 
-    use tokenstream::{self, TokenStream, TokenTree};
+    use crate::tokenstream::{self, TokenStream, TokenTree};
 
-    pub use codemap::dummy_spanned;
-    pub use parse::new_parser_from_tts;
-    pub use syntax_pos::{BytePos, Span, DUMMY_SP};
+    pub use crate::codemap::dummy_spanned;
+    pub use crate::parse::new_parser_from_tts;
+    pub use crate::syntax_pos::{BytePos, Span, DUMMY_SP};
 
     pub trait ToTokens {
         fn to_tokens(&self, _cx: &ExtCtxt) -> Vec<TokenTree>;
@@ -415,7 +415,7 @@ pub mod rt {
 
 // Replaces `Token::OpenDelim .. Token::CloseDelim` with `TokenTree::Delimited(..)`.
 pub fn unflatten(tts: Vec<TokenTree>) -> Vec<TokenTree> {
-    use tokenstream::Delimited;
+    use crate::tokenstream::Delimited;
 
     let mut results = Vec::new();
     let mut result = Vec::new();

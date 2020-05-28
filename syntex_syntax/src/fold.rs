@@ -18,16 +18,16 @@
 //! a folder renaming item names in a module will miss all of those
 //! that are created by the expansion of a macro.
 
-use ast;
-use ast::*;
-use codemap::{respan, Spanned};
-use parse::token;
-use ptr::P;
-use symbol::keywords;
-use syntax_pos::Span;
-use tokenstream::*;
-use util::move_map::MoveMap;
-use util::small_vector::SmallVector;
+use crate::ast;
+use crate::ast::*;
+use crate::codemap::{respan, Spanned};
+use crate::parse::token;
+use crate::ptr::P;
+use crate::symbol::keywords;
+use crate::syntax_pos::Span;
+use crate::tokenstream::*;
+use crate::util::move_map::MoveMap;
+use crate::util::small_vector::SmallVector;
 
 use std::rc::Rc;
 
@@ -1440,11 +1440,11 @@ pub fn noop_fold_vis<T: Folder>(vis: Visibility, folder: &mut T) -> Visibility {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::{self, Ident};
-    use fold;
-    use print::pprust;
+    use crate::ast::{self, Ident};
+    use crate::fold;
+    use crate::print::pprust;
     use std::io;
-    use util::parser_testing::{matches_codepattern, string_to_crate};
+    use crate::util::parser_testing::{matches_codepattern, string_to_crate};
 
     // this version doesn't care about getting comments or docstrings in.
     fn fake_print_crate(s: &mut pprust::State, krate: &ast::Crate) -> io::Result<()> {

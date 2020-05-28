@@ -8,14 +8,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast::{self, Ident};
-use codemap::FilePathMapping;
-use parse::parser::Parser;
-use parse::{filemap_to_stream, PResult, ParseSess};
-use parse::{lexer, new_parser_from_source_str};
-use ptr::P;
+use crate::ast::{self, Ident};
+use crate::codemap::FilePathMapping;
+use crate::parse::parser::Parser;
+use crate::parse::{filemap_to_stream, PResult, ParseSess};
+use crate::parse::{lexer, new_parser_from_source_str};
+use crate::ptr::P;
 use std::iter::Peekable;
-use tokenstream::TokenStream;
+use crate::tokenstream::TokenStream;
 
 /// Map a string to tts, using a made-up filename:
 pub fn string_to_stream(source_str: String) -> TokenStream {

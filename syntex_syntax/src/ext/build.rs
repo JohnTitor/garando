@@ -8,19 +8,19 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use abi::Abi;
-use ast::{self, BlockCheckMode, Expr, Generics, Ident, PatKind, UnOp};
-use attr;
-use codemap::{dummy_spanned, respan, Spanned};
-use ext::base::ExtCtxt;
-use ptr::P;
-use symbol::{keywords, Symbol};
-use syntax_pos::{Span, DUMMY_SP};
+use crate::abi::Abi;
+use crate::ast::{self, BlockCheckMode, Expr, Generics, Ident, PatKind, UnOp};
+use crate::attr;
+use crate::codemap::{dummy_spanned, respan, Spanned};
+use crate::ext::base::ExtCtxt;
+use crate::ptr::P;
+use crate::symbol::{keywords, Symbol};
+use crate::syntax_pos::{Span, DUMMY_SP};
 
 // Transitional reexports so qquote can find the paths it is looking for
 mod syntax {
-    pub use ext;
-    pub use parse;
+    pub use crate::ext;
+    pub use crate::parse;
 }
 
 pub trait AstBuilder {

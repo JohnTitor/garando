@@ -8,16 +8,16 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast;
-use attr::HasAttrs;
-use codemap::Spanned;
-use feature_gate::{feature_err, get_features, Features, GateIssue, EXPLAIN_STMT_ATTR_SYNTAX};
-use parse::{token, ParseSess};
-use syntax_pos::Span;
-use {attr, fold};
+use crate::ast;
+use crate::attr::HasAttrs;
+use crate::codemap::Spanned;
+use crate::feature_gate::{feature_err, get_features, Features, GateIssue, EXPLAIN_STMT_ATTR_SYNTAX};
+use crate::parse::{token, ParseSess};
+use crate::syntax_pos::Span;
+use crate::{attr, fold};
 
-use ptr::P;
-use util::small_vector::SmallVector;
+use crate::ptr::P;
+use crate::util::small_vector::SmallVector;
 
 /// A folder that strips out items that do not belong in the current configuration.
 pub struct StripUnconfigured<'a> {

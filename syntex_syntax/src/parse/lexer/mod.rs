@@ -8,13 +8,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast::{self, Ident};
-use codemap::{CodeMap, FilePathMapping};
-use errors::{DiagnosticBuilder, FatalError};
-use parse::{token, ParseSess};
-use str::char_at;
-use symbol::{keywords, Symbol};
-use syntax_pos::{self, BytePos, CharPos, Pos, Span, NO_EXPANSION};
+use crate::ast::{self, Ident};
+use crate::codemap::{CodeMap, FilePathMapping};
+use crate::errors::{DiagnosticBuilder, FatalError};
+use crate::parse::{token, ParseSess};
+use crate::str::char_at;
+use crate::symbol::{keywords, Symbol};
+use crate::syntax_pos::{self, BytePos, CharPos, Pos, Span, NO_EXPANSION};
 
 use std::borrow::Cow;
 use std::char;
@@ -1740,17 +1740,17 @@ fn ident_continue(c: Option<char>) -> bool {
 mod tests {
     use super::*;
 
-    use ast::{CrateConfig, Ident};
-    use codemap::CodeMap;
-    use errors;
-    use feature_gate::UnstableFeatures;
-    use parse::token;
+    use crate::ast::{CrateConfig, Ident};
+    use crate::codemap::CodeMap;
+    use crate::errors;
+    use crate::feature_gate::UnstableFeatures;
+    use crate::parse::token;
     use std::cell::RefCell;
     use std::collections::HashSet;
     use std::io;
     use std::rc::Rc;
-    use symbol::Symbol;
-    use syntax_pos::{BytePos, Span, NO_EXPANSION};
+    use crate::symbol::Symbol;
+    use crate::syntax_pos::{BytePos, Span, NO_EXPANSION};
 
     fn mk_sess(cm: Rc<CodeMap>) -> ParseSess {
         let emitter = errors::emitter::EmitterWriter::new(Box::new(io::sink()), Some(cm.clone()));
