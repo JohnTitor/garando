@@ -21,6 +21,7 @@ use std::char;
 use std::mem::replace;
 use std::rc::Rc;
 
+use log::debug;
 use unicode_xid::UnicodeXID;
 
 pub mod comments;

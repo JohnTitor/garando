@@ -28,6 +28,8 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::str;
 
+use log::debug;
+
 pub type PResult<'a, T> = Result<T, DiagnosticBuilder<'a>>;
 
 #[macro_use]

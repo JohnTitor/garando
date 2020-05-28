@@ -34,6 +34,9 @@ use crate::util::ThinVec;
 use std::cell::{Cell, RefCell};
 use std::iter;
 
+use log::debug;
+use serde::{Deserialize, Serialize};
+
 thread_local! {
     static USED_ATTRS: RefCell<Vec<u64>> = RefCell::new(Vec::new());
     static KNOWN_ATTRS: RefCell<Vec<u64>> = RefCell::new(Vec::new());

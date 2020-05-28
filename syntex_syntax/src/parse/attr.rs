@@ -17,6 +17,8 @@ use crate::parse::token::{self, Nonterminal};
 use crate::parse::PResult;
 use crate::tokenstream::TokenStream;
 
+use log::debug;
+
 #[derive(PartialEq, Eq, Debug)]
 enum InnerAttributeParsePolicy<'a> {
     Permitted,

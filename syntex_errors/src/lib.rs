@@ -14,9 +14,7 @@
     html_root_url = "https://docs.rs/syntex_errors/0.59.1"
 )]
 
-extern crate libc;
-extern crate syntex_pos as syntax_pos;
-extern crate term;
+use syntex_pos as syntax_pos;
 
 pub use crate::emitter::ColorConfig;
 
@@ -36,9 +34,7 @@ pub mod registry;
 pub mod snippet;
 pub mod styled_buffer;
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
+use serde::{Deserialize, Serialize};
 
 use crate::syntax_pos::{BytePos, FileLinesResult, FileName, Loc, MultiSpan, Span, NO_EXPANSION};
 

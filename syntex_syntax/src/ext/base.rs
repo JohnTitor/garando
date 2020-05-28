@@ -30,6 +30,8 @@ use std::default::Default;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Debug, Clone)]
 pub enum Annotatable {
     Item(P<ast::Item>),

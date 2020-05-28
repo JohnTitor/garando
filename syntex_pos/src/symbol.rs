@@ -35,6 +35,7 @@ impl Ident {
     }
 
     /// Maps a string to an identifier with an empty syntax context.
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(string: &str) -> Ident {
         Ident::with_empty_ctxt(Symbol::intern(string))
     }

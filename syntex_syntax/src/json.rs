@@ -29,7 +29,7 @@ use std::io::{self, Write};
 use std::rc::Rc;
 use std::vec;
 
-use serde_json;
+use serde::Serialize;
 
 pub struct JsonEmitter {
     dst: Box<dyn Write + Send>,

@@ -148,6 +148,8 @@ use std::collections::VecDeque;
 use std::fmt;
 use std::io;
 
+use log::debug;
+
 /// How to break. Described in more detail in the module docs.
 #[derive(Clone, Copy, PartialEq)]
 pub enum Breaks {

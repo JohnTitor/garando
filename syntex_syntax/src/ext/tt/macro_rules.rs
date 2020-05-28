@@ -31,6 +31,8 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use log::debug;
+
 pub struct ParserAnyMacro<'a> {
     parser: Parser<'a>,
 

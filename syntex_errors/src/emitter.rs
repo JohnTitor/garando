@@ -58,7 +58,7 @@ impl Emitter for EmitterWriter {
                     children.push(SubDiagnostic {
                         level: Level::Help,
                         message: Vec::new(),
-                        span: MultiSpan::new(),
+                        span: MultiSpan::default(),
                         render_span: Some(Suggestion(sugg.clone())),
                     });
                 }
@@ -774,7 +774,7 @@ impl EmitterWriter {
                     "this error originates in a macro outside of the current crate".to_string(),
                     Style::NoStyle,
                 )],
-                span: MultiSpan::new(),
+                span: MultiSpan::default(),
                 render_span: None,
             });
         }

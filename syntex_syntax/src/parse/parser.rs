@@ -63,6 +63,9 @@ use std::mem;
 use std::path::{self, Path, PathBuf};
 use std::slice;
 
+use bitflags::bitflags;
+use log::debug;
+
 bitflags! {
     pub struct Restrictions: u8 {
         const RESTRICTION_STMT_EXPR         = 1 << 0;

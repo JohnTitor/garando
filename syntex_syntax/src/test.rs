@@ -42,6 +42,8 @@ use crate::symbol::{self, keywords, Symbol};
 use crate::util::move_map::MoveMap;
 use crate::util::small_vector::SmallVector;
 
+use log::debug;
+
 enum ShouldPanic {
     No,
     Yes(Option<Symbol>),
@@ -477,23 +479,6 @@ fn should_panic(i: &ast::Item, cx: &TestCtxt) -> ShouldPanic {
         None => ShouldPanic::No,
     }
 }
-
-/*
-
-We're going to be building a module that looks more or less like:
-
-mod __test {
-  extern crate test (name = "test", vers = "...");
-  fn main() {
-    test::test_main_static(&::os::args()[], tests, test::Options::new())
-  }
-
-  static tests : &'static [test::TestDescAndFn] = &[
-    ... the list of tests in the crate ...
-  ];
-}
-
-*/
 
 fn mk_std(cx: &TestCtxt) -> P<ast::Item> {
     let id_test = Ident::from_str("test");

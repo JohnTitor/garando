@@ -22,7 +22,7 @@ use crate::diagnostics::plugin::{ErrorInfo, ErrorMap};
 use crate::ext::base::ExtCtxt;
 use crate::syntax_pos::Span;
 
-use serde_json;
+use serde::{Deserialize, Serialize};
 
 // Default metadata directory to use for extended error JSON.
 const ERROR_METADATA_PREFIX: &'static str = "tmp/extended-errors";

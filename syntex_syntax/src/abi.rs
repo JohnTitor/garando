@@ -10,6 +10,8 @@
 
 use std::fmt;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(PartialEq, Eq, Hash, Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum Abi {
     // NB: This ordering MUST match the AbiDatas array below.
