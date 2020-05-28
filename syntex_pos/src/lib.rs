@@ -63,7 +63,7 @@ pub struct Span {
 ///   the error, and would be rendered with `^^^`.
 /// - they can have a *label*. In this case, the label is written next
 ///   to the mark in the snippet when we render.
-#[derive(Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MultiSpan {
     primary_spans: Vec<Span>,
     span_labels: Vec<(Span, String)>,
@@ -160,12 +160,7 @@ impl Span {
     pub fn macro_backtrace(mut self) -> Vec<MacroBacktrace> {
         let mut prev_span = DUMMY_SP;
         let mut result = vec![];
-        loop {
-            let info = match self.ctxt.outer().expn_info() {
-                Some(info) => info,
-                None => break,
-            };
-
+        while let Some(info) = self.ctxt.outer().expn_info() {
             let (pre, post) = match info.callee.format {
                 ExpnFormat::MacroAttribute(..) => ("#[", "]"),
                 ExpnFormat::MacroBang(..) => ("", "!"),
@@ -257,13 +252,6 @@ pub const DUMMY_SP: Span = Span {
 };
 
 impl MultiSpan {
-    pub fn new() -> MultiSpan {
-        MultiSpan {
-            primary_spans: vec![],
-            span_labels: vec![],
-        }
-    }
-
     pub fn from_span(primary_span: Span) -> MultiSpan {
         MultiSpan {
             primary_spans: vec![primary_span],
@@ -563,7 +551,7 @@ impl FileMap {
     }
 
     pub fn is_real_file(&self) -> bool {
-        !(self.name.starts_with("<") && self.name.ends_with(">"))
+        !(self.name.starts_with('<') && self.name.ends_with('>'))
     }
 
     pub fn is_imported(&self) -> bool {

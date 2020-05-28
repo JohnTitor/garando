@@ -88,7 +88,7 @@ impl Diagnostic {
             level: level,
             message: vec![(message.to_owned(), Style::NoStyle)],
             code: code,
-            span: MultiSpan::new(),
+            span: MultiSpan::default(),
             children: vec![],
             suggestions: vec![],
         }
@@ -158,12 +158,12 @@ impl Diagnostic {
     }
 
     pub fn note(&mut self, msg: &str) -> &mut Self {
-        self.sub(Level::Note, msg, MultiSpan::new(), None);
+        self.sub(Level::Note, msg, MultiSpan::default(), None);
         self
     }
 
     pub fn highlighted_note(&mut self, msg: Vec<(String, Style)>) -> &mut Self {
-        self.sub_with_highlights(Level::Note, msg, MultiSpan::new(), None);
+        self.sub_with_highlights(Level::Note, msg, MultiSpan::default(), None);
         self
     }
 
@@ -173,7 +173,7 @@ impl Diagnostic {
     }
 
     pub fn warn(&mut self, msg: &str) -> &mut Self {
-        self.sub(Level::Warning, msg, MultiSpan::new(), None);
+        self.sub(Level::Warning, msg, MultiSpan::default(), None);
         self
     }
 
@@ -183,7 +183,7 @@ impl Diagnostic {
     }
 
     pub fn help(&mut self, msg: &str) -> &mut Self {
-        self.sub(Level::Help, msg, MultiSpan::new(), None);
+        self.sub(Level::Help, msg, MultiSpan::default(), None);
         self
     }
 
