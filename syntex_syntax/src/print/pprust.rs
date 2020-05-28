@@ -10,25 +10,25 @@
 
 pub use self::AnnNode::*;
 
-use abi::{self, Abi};
-use ast::Attribute;
-use ast::{self, BlockCheckMode, PatKind, RangeEnd};
-use ast::{RegionTyParamBound, SelfKind, TraitBoundModifier, TraitTyParamBound};
-use attr;
-use codemap::{self, CodeMap};
-use parse::lexer::comments;
-use parse::token::{self, BinOpToken, Token};
-use parse::{self, ParseSess};
-use print::pp::Breaks::{Consistent, Inconsistent};
-use print::pp::{self, break_offset, hardbreak, space, word, zerobreak};
-use print::pp::{eof, Breaks};
-use ptr::P;
-use std_inject;
-use symbol::{keywords, Symbol};
-use syntax_pos::DUMMY_SP;
-use syntax_pos::{self, BytePos};
-use tokenstream::{self, TokenStream, TokenTree};
-use util::parser::AssocOp;
+use crate::abi::{self, Abi};
+use crate::ast::Attribute;
+use crate::ast::{self, BlockCheckMode, PatKind, RangeEnd};
+use crate::ast::{RegionTyParamBound, SelfKind, TraitBoundModifier, TraitTyParamBound};
+use crate::attr;
+use crate::codemap::{self, CodeMap};
+use crate::parse::lexer::comments;
+use crate::parse::token::{self, BinOpToken, Token};
+use crate::parse::{self, ParseSess};
+use crate::print::pp::Breaks::{Consistent, Inconsistent};
+use crate::print::pp::{self, break_offset, hardbreak, space, word, zerobreak};
+use crate::print::pp::{eof, Breaks};
+use crate::ptr::P;
+use crate::std_inject;
+use crate::symbol::{keywords, Symbol};
+use crate::syntax_pos::DUMMY_SP;
+use crate::syntax_pos::{self, BytePos};
+use crate::tokenstream::{self, TokenStream, TokenTree};
+use crate::util::parser::AssocOp;
 
 use std::ascii;
 use std::io::{self, Read, Write};
@@ -449,7 +449,7 @@ pub fn arg_to_string(arg: &ast::Arg) -> String {
 }
 
 pub fn mac_to_string(arg: &ast::Mac) -> String {
-    to_string(|s| s.print_mac(arg, ::parse::token::Paren))
+    to_string(|s| s.print_mac(arg, crate::parse::token::Paren))
 }
 
 pub fn visibility_qualified(vis: &ast::Visibility, s: &str) -> String {
@@ -3132,9 +3132,9 @@ fn repeat(s: &str, n: usize) -> String {
 mod tests {
     use super::*;
 
-    use ast;
-    use codemap;
-    use syntax_pos;
+    use crate::ast;
+    use crate::codemap;
+    use crate::syntax_pos;
 
     #[test]
     fn test_fun_to_string() {

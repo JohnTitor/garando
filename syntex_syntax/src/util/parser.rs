@@ -7,9 +7,9 @@
 // <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
-use ast::BinOpKind;
-use parse::token::{BinOpToken, Token};
-use symbol::keywords;
+use crate::ast::BinOpKind;
+use crate::parse::token::{BinOpToken, Token};
+use crate::symbol::keywords;
 
 /// Associative operator with precedence.
 ///

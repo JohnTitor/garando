@@ -12,8 +12,8 @@
 // http://www.unicode.org/Public/security/revision-06/confusables.txt
 
 use super::StringReader;
-use errors::DiagnosticBuilder;
-use syntax_pos::{Span, NO_EXPANSION};
+use crate::errors::DiagnosticBuilder;
+use crate::syntax_pos::{Span, NO_EXPANSION};
 
 const UNICODE_ARRAY: &'static [(char, &'static str, char)] = &[
     (' ', "No-Break Space", ' '),

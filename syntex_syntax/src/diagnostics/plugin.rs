@@ -12,20 +12,20 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::env;
 
-use ast;
-use ast::{Ident, Name};
-use ext::base::{ExtCtxt, MacEager, MacResult};
-use ext::build::AstBuilder;
-use parse::token;
-use ptr::P;
-use symbol::Symbol;
-use syntax_pos::Span;
-use tokenstream::TokenTree;
-use util::small_vector::SmallVector;
+use crate::ast;
+use crate::ast::{Ident, Name};
+use crate::ext::base::{ExtCtxt, MacEager, MacResult};
+use crate::ext::build::AstBuilder;
+use crate::parse::token;
+use crate::ptr::P;
+use crate::symbol::Symbol;
+use crate::syntax_pos::Span;
+use crate::tokenstream::TokenTree;
+use crate::util::small_vector::SmallVector;
 
-use diagnostics::metadata::output_metadata;
+use crate::diagnostics::metadata::output_metadata;
 
-pub use errors::*;
+pub use crate::errors::*;
 
 // Maximum width of any line in an extended error description (inclusive).
 const MAX_DESCRIPTION_WIDTH: usize = 80;

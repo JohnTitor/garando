@@ -8,54 +8,54 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use abi::{self, Abi};
-use ast::Block;
-use ast::Defaultness;
-use ast::EnumDef;
-use ast::Local;
-use ast::MacStmtStyle;
-use ast::Mac_;
-use ast::RangeEnd;
-use ast::SelfKind;
-use ast::StrStyle;
-use ast::Unsafety;
-use ast::{Arg, Arm, Attribute, BindingMode, Mod, TraitItemKind};
-use ast::{AttrStyle, BareFnTy};
-use ast::{BinOpKind, UnOp};
-use ast::{BlockCheckMode, CaptureBy};
-use ast::{Constness, Crate};
-use ast::{Expr, ExprKind, RangeLimits};
-use ast::{Field, FnDecl};
-use ast::{ForeignItem, ForeignItemKind, FunctionRetTy};
-use ast::{Ident, ImplItem, Item, ItemKind};
-use ast::{Lifetime, LifetimeDef, Lit, LitKind, UintTy};
-use ast::{MutTy, Mutability};
-use ast::{Pat, PatKind, PathSegment};
-use ast::{PolyTraitRef, QSelf};
-use ast::{RegionTyParamBound, TraitBoundModifier, TraitTyParamBound};
-use ast::{Stmt, StmtKind};
-use ast::{StructField, VariantData};
-use ast::{TraitItem, TraitRef};
-use ast::{Ty, TyKind, TyParam, TyParamBounds, TypeBinding};
-use ast::{ViewPath, ViewPathGlob, ViewPathList, ViewPathSimple};
-use ast::{Visibility, WhereClause};
-use codemap::{self, respan, CodeMap, Spanned};
-use errors::{self, DiagnosticBuilder};
-use parse::common::SeqSep;
-use parse::lexer::comments::{doc_comment_style, strip_doc_comment_decoration};
-use parse::lexer::TokenAndSpan;
-use parse::obsolete::ObsoleteSyntax;
-use parse::PResult;
-use parse::{self, classify, token};
-use parse::{new_sub_parser_from_file, Directory, DirectoryOwnership, ParseSess};
-use print::pprust;
-use ptr::P;
-use symbol::{keywords, Symbol};
-use syntax_pos::{self, BytePos, Span};
-use tokenstream::{self, Delimited, ThinTokenStream, TokenStream, TokenTree};
-use util::parser::{AssocOp, Fixity};
-use util::ThinVec;
-use {ast, attr};
+use crate::abi::{self, Abi};
+use crate::ast::Block;
+use crate::ast::Defaultness;
+use crate::ast::EnumDef;
+use crate::ast::Local;
+use crate::ast::MacStmtStyle;
+use crate::ast::Mac_;
+use crate::ast::RangeEnd;
+use crate::ast::SelfKind;
+use crate::ast::StrStyle;
+use crate::ast::Unsafety;
+use crate::ast::{Arg, Arm, Attribute, BindingMode, Mod, TraitItemKind};
+use crate::ast::{AttrStyle, BareFnTy};
+use crate::ast::{BinOpKind, UnOp};
+use crate::ast::{BlockCheckMode, CaptureBy};
+use crate::ast::{Constness, Crate};
+use crate::ast::{Expr, ExprKind, RangeLimits};
+use crate::ast::{Field, FnDecl};
+use crate::ast::{ForeignItem, ForeignItemKind, FunctionRetTy};
+use crate::ast::{Ident, ImplItem, Item, ItemKind};
+use crate::ast::{Lifetime, LifetimeDef, Lit, LitKind, UintTy};
+use crate::ast::{MutTy, Mutability};
+use crate::ast::{Pat, PatKind, PathSegment};
+use crate::ast::{PolyTraitRef, QSelf};
+use crate::ast::{RegionTyParamBound, TraitBoundModifier, TraitTyParamBound};
+use crate::ast::{Stmt, StmtKind};
+use crate::ast::{StructField, VariantData};
+use crate::ast::{TraitItem, TraitRef};
+use crate::ast::{Ty, TyKind, TyParam, TyParamBounds, TypeBinding};
+use crate::ast::{ViewPath, ViewPathGlob, ViewPathList, ViewPathSimple};
+use crate::ast::{Visibility, WhereClause};
+use crate::codemap::{self, respan, CodeMap, Spanned};
+use crate::errors::{self, DiagnosticBuilder};
+use crate::parse::common::SeqSep;
+use crate::parse::lexer::comments::{doc_comment_style, strip_doc_comment_decoration};
+use crate::parse::lexer::TokenAndSpan;
+use crate::parse::obsolete::ObsoleteSyntax;
+use crate::parse::PResult;
+use crate::parse::{self, classify, token};
+use crate::parse::{new_sub_parser_from_file, Directory, DirectoryOwnership, ParseSess};
+use crate::print::pprust;
+use crate::ptr::P;
+use crate::symbol::{keywords, Symbol};
+use crate::syntax_pos::{self, BytePos, Span};
+use crate::tokenstream::{self, Delimited, ThinTokenStream, TokenStream, TokenTree};
+use crate::util::parser::{AssocOp, Fixity};
+use crate::util::ThinVec;
+use crate::{ast, attr};
 
 use std::cmp;
 use std::collections::HashSet;
@@ -1632,8 +1632,8 @@ impl<'a> Parser<'a> {
         match ty.node {
             TyKind::Rptr(ref lifetime, ref mut_ty) => {
                 let sum_with_parens = pprust::to_string(|s| {
-                    use print::pp::word;
-                    use print::pprust::PrintState;
+                    use crate::print::pp::word;
+                    use crate::print::pprust::PrintState;
 
                     word(&mut s.s, "&")?;
                     s.print_opt_lifetime(lifetime)?;
@@ -2754,8 +2754,8 @@ impl<'a> Parser<'a> {
                                 None => continue,
                             };
                             let sugg = pprust::to_string(|s| {
-                                use print::pp::word;
-                                use print::pprust::PrintState;
+                                use crate::print::pp::word;
+                                use crate::print::pprust::PrintState;
                                 s.popen()?;
                                 s.print_expr(&e)?;
                                 word(&mut s.s, ".")?;
@@ -4379,7 +4379,7 @@ impl<'a> Parser<'a> {
                         stmt_span.hi = self.prev_span.hi;
                     }
                     let sugg = pprust::to_string(|s| {
-                        use print::pprust::{PrintState, INDENT_UNIT};
+                        use crate::print::pprust::{PrintState, INDENT_UNIT};
                         s.ibox(INDENT_UNIT)?;
                         s.bopen()?;
                         s.print_stmt(&stmt)?;
@@ -5763,7 +5763,7 @@ impl<'a> Parser<'a> {
     /// Parse a `mod <foo> { ... }` or `mod <foo>;` item
     fn parse_item_mod(&mut self, outer_attrs: &[Attribute]) -> PResult<'a, ItemInfo> {
         let (in_cfg, outer_attrs) = {
-            let mut strip_unconfigured = ::config::StripUnconfigured {
+            let mut strip_unconfigured = crate::config::StripUnconfigured {
                 sess: self.sess,
                 should_test: false, // irrelevant
                 features: None,     // don't perform gated feature checking

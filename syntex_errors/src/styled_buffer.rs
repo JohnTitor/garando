@@ -10,7 +10,7 @@
 
 // Code for creating styled buffers
 
-use snippet::{Style, StyledString};
+use crate::snippet::{Style, StyledString};
 
 #[derive(Debug)]
 pub struct StyledBuffer {

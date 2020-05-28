@@ -12,7 +12,7 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use rustc_data_structures::stable_hasher::{HashStable, StableHasher, StableHasherResult};
+use crate::rustc_data_structures::stable_hasher::{HashStable, StableHasher, StableHasherResult};
 
 #[derive(Clone)]
 pub struct RcSlice<T> {

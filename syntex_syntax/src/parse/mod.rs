@@ -10,16 +10,16 @@
 
 //! The main parser interface
 
-use ast::{self, CrateConfig};
-use codemap::{CodeMap, FilePathMapping};
-use errors::{ColorConfig, DiagnosticBuilder, Handler};
-use feature_gate::UnstableFeatures;
-use parse::parser::Parser;
-use ptr::P;
-use str::char_at;
-use symbol::Symbol;
-use syntax_pos::{self, FileMap, Span, NO_EXPANSION};
-use tokenstream::{TokenStream, TokenTree};
+use crate::ast::{self, CrateConfig};
+use crate::codemap::{CodeMap, FilePathMapping};
+use crate::errors::{ColorConfig, DiagnosticBuilder, Handler};
+use crate::feature_gate::UnstableFeatures;
+use crate::parse::parser::Parser;
+use crate::ptr::P;
+use crate::str::char_at;
+use crate::symbol::Symbol;
+use crate::syntax_pos::{self, FileMap, Span, NO_EXPANSION};
+use crate::tokenstream::{TokenStream, TokenTree};
 
 use std::cell::RefCell;
 use std::collections::HashSet;
@@ -400,7 +400,7 @@ pub fn lit_token(
     suf: Option<Symbol>,
     diag: Option<(Span, &Handler)>,
 ) -> (bool /* suffix illegal? */, Option<ast::LitKind>) {
-    use ast::LitKind;
+    use crate::ast::LitKind;
 
     match lit {
         token::Byte(i) => (true, Some(LitKind::Byte(byte_lit(&i.as_str()).0))),
@@ -683,19 +683,19 @@ pub fn integer_lit(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abi::Abi;
-    use ast::{self, Ident, PatKind};
-    use attr::first_attr_value_str_by_name;
-    use codemap::Spanned;
-    use parse;
-    use parse::parser::Parser;
-    use print::pprust::item_to_string;
-    use ptr::P;
-    use syntax_pos::{self, BytePos, Pos, Span, NO_EXPANSION};
-    use tokenstream::{self, TokenTree};
-    use util::parser_testing::{string_to_expr, string_to_item, string_to_stmt};
-    use util::parser_testing::{string_to_parser, string_to_stream};
-    use util::ThinVec;
+    use crate::abi::Abi;
+    use crate::ast::{self, Ident, PatKind};
+    use crate::attr::first_attr_value_str_by_name;
+    use crate::codemap::Spanned;
+    use crate::parse;
+    use crate::parse::parser::Parser;
+    use crate::print::pprust::item_to_string;
+    use crate::ptr::P;
+    use crate::syntax_pos::{self, BytePos, Pos, Span, NO_EXPANSION};
+    use crate::tokenstream::{self, TokenTree};
+    use crate::util::parser_testing::{string_to_expr, string_to_item, string_to_stmt};
+    use crate::util::parser_testing::{string_to_parser, string_to_stream};
+    use crate::util::ThinVec;
 
     // produce a syntax_pos::span
     fn sp(a: u32, b: u32) -> Span {
@@ -1035,20 +1035,20 @@ mod tests {
         struct PatIdentVisitor {
             spans: Vec<Span>,
         }
-        impl<'a> ::visit::Visitor<'a> for PatIdentVisitor {
+        impl<'a> crate::visit::Visitor<'a> for PatIdentVisitor {
             fn visit_pat(&mut self, p: &'a ast::Pat) {
                 match p.node {
                     PatKind::Ident(_, ref spannedident, _) => {
                         self.spans.push(spannedident.span.clone());
                     }
                     _ => {
-                        ::visit::walk_pat(self, p);
+                        crate::visit::walk_pat(self, p);
                     }
                 }
             }
         }
         let mut v = PatIdentVisitor { spans: Vec::new() };
-        ::visit::walk_item(&mut v, &item);
+        crate::visit::walk_item(&mut v, &item);
         return v.spans;
     }
 

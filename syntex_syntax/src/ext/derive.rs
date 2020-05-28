@@ -8,14 +8,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast;
-use attr::HasAttrs;
-use codemap::{ExpnFormat, ExpnInfo, NameAndSpan};
-use ext::base::ExtCtxt;
-use ext::build::AstBuilder;
-use parse::parser::PathStyle;
-use symbol::Symbol;
-use syntax_pos::Span;
+use crate::ast;
+use crate::attr::HasAttrs;
+use crate::codemap::{ExpnFormat, ExpnInfo, NameAndSpan};
+use crate::ext::base::ExtCtxt;
+use crate::ext::build::AstBuilder;
+use crate::parse::parser::PathStyle;
+use crate::symbol::Symbol;
+use crate::syntax_pos::Span;
 
 use std::collections::HashSet;
 

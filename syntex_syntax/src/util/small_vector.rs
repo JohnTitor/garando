@@ -17,7 +17,7 @@ use std::ops;
 use std::slice;
 use std::vec;
 
-use util::move_map::MoveMap;
+use crate::util::move_map::MoveMap;
 
 /// A vector type optimized for cases where the size is almost always 0 or 1
 #[derive(Clone)]

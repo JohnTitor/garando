@@ -19,11 +19,11 @@
 
 // FIXME spec the JSON output properly.
 
-use codemap::{CodeMap, FilePathMapping};
-use errors::emitter::Emitter;
-use errors::registry::Registry;
-use errors::{CodeMapper, CodeSuggestion, DiagnosticBuilder, RenderSpan, SubDiagnostic};
-use syntax_pos::{self, MacroBacktrace, MultiSpan, Span, SpanLabel};
+use crate::codemap::{CodeMap, FilePathMapping};
+use crate::errors::emitter::Emitter;
+use crate::errors::registry::Registry;
+use crate::errors::{CodeMapper, CodeSuggestion, DiagnosticBuilder, RenderSpan, SubDiagnostic};
+use crate::syntax_pos::{self, MacroBacktrace, MultiSpan, Span, SpanLabel};
 
 use std::io::{self, Write};
 use std::rc::Rc;

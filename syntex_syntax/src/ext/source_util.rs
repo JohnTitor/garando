@@ -8,18 +8,18 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast;
-use ext::base;
-use ext::base::*;
-use ext::build::AstBuilder;
-use parse;
-use parse::{token, DirectoryOwnership};
-use print::pprust;
-use ptr::P;
-use symbol::Symbol;
-use syntax_pos::{self, Pos, Span};
-use tokenstream;
-use util::small_vector::SmallVector;
+use crate::ast;
+use crate::ext::base;
+use crate::ext::base::*;
+use crate::ext::build::AstBuilder;
+use crate::parse;
+use crate::parse::{token, DirectoryOwnership};
+use crate::print::pprust;
+use crate::ptr::P;
+use crate::symbol::Symbol;
+use crate::syntax_pos::{self, Pos, Span};
+use crate::tokenstream;
+use crate::util::small_vector::SmallVector;
 
 use std::fs::File;
 use std::io::prelude::*;

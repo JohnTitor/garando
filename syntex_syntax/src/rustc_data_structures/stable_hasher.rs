@@ -8,8 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use rustc_data_structures::blake2b::Blake2bHasher;
-use rustc_data_structures::leb128;
+use crate::rustc_data_structures::blake2b::Blake2bHasher;
+use crate::rustc_data_structures::leb128;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 
@@ -303,8 +303,8 @@ where
     }
 }
 
-impl<I: ::rustc_data_structures::indexed_vec::Idx, T, CTX> HashStable<CTX>
-    for ::rustc_data_structures::indexed_vec::IndexVec<I, T>
+impl<I: crate::rustc_data_structures::indexed_vec::Idx, T, CTX> HashStable<CTX>
+    for crate::rustc_data_structures::indexed_vec::IndexVec<I, T>
 where
     T: HashStable<CTX>,
 {

@@ -10,13 +10,13 @@
 
 pub use self::CommentStyle::*;
 
-use ast;
-use codemap::CodeMap;
-use parse::lexer::{self, ParseSess, StringReader, TokenAndSpan};
-use parse::lexer::{is_block_doc_comment, is_pattern_whitespace};
-use print::pprust;
-use str::char_at;
-use syntax_pos::{BytePos, CharPos, Pos};
+use crate::ast;
+use crate::codemap::CodeMap;
+use crate::parse::lexer::{self, ParseSess, StringReader, TokenAndSpan};
+use crate::parse::lexer::{is_block_doc_comment, is_pattern_whitespace};
+use crate::print::pprust;
+use crate::str::char_at;
+use crate::syntax_pos::{BytePos, CharPos, Pos};
 
 use std::io::Read;
 use std::usize;

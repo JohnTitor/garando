@@ -10,12 +10,12 @@
 
 use self::Destination::*;
 
-use syntax_pos::{CharPos, FileMap, MultiSpan, Span, DUMMY_SP};
+use crate::syntax_pos::{CharPos, FileMap, MultiSpan, Span, DUMMY_SP};
 
-use snippet::{Annotation, AnnotationType, Line, MultilineAnnotation, Style, StyledString};
-use styled_buffer::StyledBuffer;
-use RenderSpan::*;
-use {CodeMapper, CodeSuggestion, DiagnosticBuilder, Level, SubDiagnostic};
+use crate::snippet::{Annotation, AnnotationType, Line, MultilineAnnotation, Style, StyledString};
+use crate::styled_buffer::StyledBuffer;
+use crate::RenderSpan::*;
+use crate::{CodeMapper, CodeSuggestion, DiagnosticBuilder, Level, SubDiagnostic};
 
 use std::cmp::min;
 use std::collections::HashMap;
@@ -1274,7 +1274,7 @@ fn emit_to_destination(
     lvl: &Level,
     dst: &mut Destination,
 ) -> io::Result<()> {
-    use lock;
+    use crate::lock;
 
     // In order to prevent error message interleaving, where multiple error lines get intermixed
     // when multiple compiler processes error simultaneously, we emit errors with additional

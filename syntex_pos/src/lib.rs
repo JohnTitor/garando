@@ -35,7 +35,7 @@ use serde::de::{self, Deserializer, SeqAccess, Unexpected, Visitor};
 use serde::ser::{SerializeSeq, Serializer};
 
 pub mod hygiene;
-pub use hygiene::{ExpnFormat, ExpnInfo, NameAndSpan, SyntaxContext};
+pub use crate::hygiene::{ExpnFormat, ExpnInfo, NameAndSpan, SyntaxContext};
 
 pub mod symbol;
 
@@ -350,7 +350,7 @@ impl From<Span> for MultiSpan {
     }
 }
 
-pub const NO_EXPANSION: SyntaxContext = ::hygiene::NO_EXPANSION;
+pub const NO_EXPANSION: SyntaxContext = crate::hygiene::NO_EXPANSION;
 
 /// Identifies an offset of a multi-byte character in a FileMap
 #[derive(Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]

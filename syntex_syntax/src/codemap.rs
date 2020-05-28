@@ -18,14 +18,14 @@
 //! information, source code snippets, etc.
 
 pub use self::ExpnFormat::*;
-pub use syntax_pos::hygiene::{ExpnFormat, ExpnInfo, NameAndSpan};
-pub use syntax_pos::*;
+pub use crate::syntax_pos::hygiene::{ExpnFormat, ExpnInfo, NameAndSpan};
+pub use crate::syntax_pos::*;
 
 use std::cell::{Ref, RefCell};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use errors::CodeMapper;
+use crate::errors::CodeMapper;
 use std::env;
 use std::fs;
 use std::io::{self, Read};

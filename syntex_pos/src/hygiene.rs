@@ -15,8 +15,8 @@
 //! and definition contexts*. J. Funct. Program. 22, 2 (March 2012), 181-216.
 //! DOI=10.1017/S0956796812000093 http://dx.doi.org/10.1017/S0956796812000093
 
-use symbol::{Ident, Symbol};
-use Span;
+use crate::symbol::{Ident, Symbol};
+use crate::Span;
 
 use std::cell::RefCell;
 use std::collections::HashMap;

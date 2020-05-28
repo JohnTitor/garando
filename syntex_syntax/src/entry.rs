@@ -8,8 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast::{Item, ItemKind};
-use attr;
+use crate::ast::{Item, ItemKind};
+use crate::attr;
 
 pub enum EntryPointType {
     None,

@@ -8,13 +8,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use ast;
-use ext::tt::macro_parser;
-use parse::{token, ParseSess};
-use print::pprust;
-use symbol::{keywords, Symbol};
-use syntax_pos::{BytePos, Span, DUMMY_SP};
-use tokenstream;
+use crate::ast;
+use crate::ext::tt::macro_parser;
+use crate::parse::{token, ParseSess};
+use crate::print::pprust;
+use crate::symbol::{keywords, Symbol};
+use crate::syntax_pos::{BytePos, Span, DUMMY_SP};
+use crate::tokenstream;
 
 use std::rc::Rc;
 

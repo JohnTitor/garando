@@ -8,13 +8,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use snippet::Style;
+use crate::snippet::Style;
+use crate::syntax_pos::{MultiSpan, Span};
+use crate::CodeSuggestion;
+use crate::Level;
+use crate::RenderSpan;
+use crate::Substitution;
 use std::fmt;
-use syntax_pos::{MultiSpan, Span};
-use CodeSuggestion;
-use Level;
-use RenderSpan;
-use Substitution;
 
 #[must_use]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
