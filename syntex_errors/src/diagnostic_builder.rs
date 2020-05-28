@@ -8,15 +8,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use Diagnostic;
-use DiagnosticStyledString;
+use crate::Diagnostic;
+use crate::DiagnosticStyledString;
 
 use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut};
 use std::thread::panicking;
-use syntax_pos::{MultiSpan, Span};
-use Handler;
-use Level;
+use crate::syntax_pos::{MultiSpan, Span};
+use crate::Handler;
+use crate::Level;
 
 /// Used for emitting structured error messages and other diagnostic information.
 #[must_use]

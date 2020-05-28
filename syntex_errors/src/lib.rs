@@ -18,11 +18,11 @@ extern crate libc;
 extern crate syntex_pos as syntax_pos;
 extern crate term;
 
-pub use emitter::ColorConfig;
+pub use crate::emitter::ColorConfig;
 
 use self::Level::*;
 
-use emitter::{Emitter, EmitterWriter};
+use crate::emitter::{Emitter, EmitterWriter};
 
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -40,7 +40,7 @@ pub mod styled_buffer;
 extern crate serde_derive;
 extern crate serde;
 
-use syntax_pos::{BytePos, FileLinesResult, FileName, Loc, MultiSpan, Span, NO_EXPANSION};
+use crate::syntax_pos::{BytePos, FileLinesResult, FileName, Loc, MultiSpan, Span, NO_EXPANSION};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum RenderSpan {
@@ -114,7 +114,7 @@ impl CodeSuggestion {
 
     /// Returns the assembled code suggestions.
     pub fn splice_lines(&self, cm: &dyn CodeMapper) -> Vec<String> {
-        use syntax_pos::{CharPos, Pos};
+        use crate::syntax_pos::{CharPos, Pos};
 
         fn push_trailing(buf: &mut String, line_opt: Option<&str>, lo: &Loc, hi_opt: Option<&Loc>) {
             let (lo, hi_opt) = (lo.col.to_usize(), hi_opt.map(|hi| hi.col.to_usize()));
@@ -244,8 +244,8 @@ impl error::Error for ExplicitBug {
     }
 }
 
-pub use diagnostic::{Diagnostic, DiagnosticStyledString, StringPart, SubDiagnostic};
-pub use diagnostic_builder::DiagnosticBuilder;
+pub use crate::diagnostic::{Diagnostic, DiagnosticStyledString, StringPart, SubDiagnostic};
+pub use crate::diagnostic_builder::DiagnosticBuilder;
 
 /// A handler deals with errors; certain errors
 /// (fatal, bug, unimpl) may cause immediate exit,

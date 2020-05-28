@@ -11,9 +11,9 @@
 // Code for annotating snippets.
 
 use std::rc::Rc;
-use syntax_pos::{FileMap, Span};
-use CodeMapper;
-use Level;
+use crate::syntax_pos::{FileMap, Span};
+use crate::CodeMapper;
+use crate::Level;
 
 #[derive(Clone)]
 pub struct SnippetData {
