@@ -24,11 +24,11 @@ use crate::symbol::Symbol;
 use crate::syntax_pos::{Span, DUMMY_SP};
 use crate::util::small_vector::SmallVector;
 
+use crate::tokenstream::{self, TokenStream};
 use std::collections::HashMap;
 use std::default::Default;
 use std::path::PathBuf;
 use std::rc::Rc;
-use crate::tokenstream::{self, TokenStream};
 
 #[derive(Debug, Clone)]
 pub enum Annotatable {

@@ -9,12 +9,12 @@
 // except according to those terms.
 
 use crate::snippet::Style;
-use std::fmt;
 use crate::syntax_pos::{MultiSpan, Span};
 use crate::CodeSuggestion;
 use crate::Level;
 use crate::RenderSpan;
 use crate::Substitution;
+use std::fmt;
 
 #[must_use]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -11,12 +11,12 @@
 use crate::codemap::{CodeMap, FilePathMapping};
 use crate::errors::emitter::EmitterWriter;
 use crate::errors::Handler;
+use crate::syntax_pos::{BytePos, MultiSpan, Span, NO_EXPANSION};
 use std::io;
 use std::io::prelude::*;
 use std::rc::Rc;
 use std::str;
 use std::sync::{Arc, Mutex};
-use crate::syntax_pos::{BytePos, MultiSpan, Span, NO_EXPANSION};
 
 /// Identify a position in the text by the Nth occurrence of a string.
 struct Position {

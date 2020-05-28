@@ -31,8 +31,8 @@ pub mod rt {
     use crate::ext::base::ExtCtxt;
     use crate::parse::{self, classify, token};
     use crate::ptr::P;
-    use std::rc::Rc;
     use crate::symbol::Symbol;
+    use std::rc::Rc;
 
     use crate::tokenstream::{self, TokenStream, TokenTree};
 

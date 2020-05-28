@@ -14,8 +14,8 @@ use crate::parse::parser::Parser;
 use crate::parse::{filemap_to_stream, PResult, ParseSess};
 use crate::parse::{lexer, new_parser_from_source_str};
 use crate::ptr::P;
-use std::iter::Peekable;
 use crate::tokenstream::TokenStream;
+use std::iter::Peekable;
 
 /// Map a string to tts, using a made-up filename:
 pub fn string_to_stream(source_str: String) -> TokenStream {

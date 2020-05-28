@@ -11,12 +11,12 @@
 use crate::Diagnostic;
 use crate::DiagnosticStyledString;
 
-use std::fmt::{self, Debug};
-use std::ops::{Deref, DerefMut};
-use std::thread::panicking;
 use crate::syntax_pos::{MultiSpan, Span};
 use crate::Handler;
 use crate::Level;
+use std::fmt::{self, Debug};
+use std::ops::{Deref, DerefMut};
+use std::thread::panicking;
 
 /// Used for emitting structured error messages and other diagnostic information.
 #[must_use]

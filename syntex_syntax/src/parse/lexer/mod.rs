@@ -1745,12 +1745,12 @@ mod tests {
     use crate::errors;
     use crate::feature_gate::UnstableFeatures;
     use crate::parse::token;
+    use crate::symbol::Symbol;
+    use crate::syntax_pos::{BytePos, Span, NO_EXPANSION};
     use std::cell::RefCell;
     use std::collections::HashSet;
     use std::io;
     use std::rc::Rc;
-    use crate::symbol::Symbol;
-    use crate::syntax_pos::{BytePos, Span, NO_EXPANSION};
 
     fn mk_sess(cm: Rc<CodeMap>) -> ParseSess {
         let emitter = errors::emitter::EmitterWriter::new(Box::new(io::sink()), Some(cm.clone()));

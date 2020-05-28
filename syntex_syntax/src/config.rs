@@ -11,7 +11,9 @@
 use crate::ast;
 use crate::attr::HasAttrs;
 use crate::codemap::Spanned;
-use crate::feature_gate::{feature_err, get_features, Features, GateIssue, EXPLAIN_STMT_ATTR_SYNTAX};
+use crate::feature_gate::{
+    feature_err, get_features, Features, GateIssue, EXPLAIN_STMT_ATTR_SYNTAX,
+};
 use crate::parse::{token, ParseSess};
 use crate::syntax_pos::Span;
 use crate::{attr, fold};

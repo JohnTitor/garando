@@ -1443,8 +1443,8 @@ mod tests {
     use crate::ast::{self, Ident};
     use crate::fold;
     use crate::print::pprust;
-    use std::io;
     use crate::util::parser_testing::{matches_codepattern, string_to_crate};
+    use std::io;
 
     // this version doesn't care about getting comments or docstrings in.
     fn fake_print_crate(s: &mut pprust::State, krate: &ast::Crate) -> io::Result<()> {

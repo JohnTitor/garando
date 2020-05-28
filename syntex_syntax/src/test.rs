@@ -16,12 +16,12 @@
 use self::HasTestSignature::*;
 
 use crate::attr::{self, HasAttrs};
+use crate::syntax_pos::{self, BytePos, FileMap, Span, DUMMY_SP, NO_EXPANSION};
 use std::iter;
 use std::mem;
 use std::rc::Rc;
 use std::slice;
 use std::vec;
-use crate::syntax_pos::{self, BytePos, FileMap, Span, DUMMY_SP, NO_EXPANSION};
 
 use crate::ast::{self, Ident};
 use crate::codemap::{self, dummy_spanned, CodeMap, ExpnInfo, MacroAttribute, NameAndSpan};

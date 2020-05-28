@@ -8,8 +8,8 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::cmp;
 use crate::symbol::Symbol;
+use std::cmp;
 
 /// To find the Levenshtein distance between two strings
 pub fn lev_distance(a: &str, b: &str) -> usize {
