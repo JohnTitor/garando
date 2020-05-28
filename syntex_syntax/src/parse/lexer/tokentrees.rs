@@ -8,9 +8,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use print::pprust::token_to_string;
 use parse::lexer::StringReader;
 use parse::{token, PResult};
+use print::pprust::token_to_string;
 use syntax_pos::Span;
 use tokenstream::{Delimited, TokenStream, TokenTree};
 
@@ -50,7 +50,7 @@ impl<'a> StringReader<'a> {
                     err.span_help(sp, "did you mean to close this delimiter?");
                 }
                 Err(err)
-            },
+            }
             token::OpenDelim(delim) => {
                 // The span for beginning of the delimited section
                 let pre_span = self.span;
@@ -65,7 +65,10 @@ impl<'a> StringReader<'a> {
                 let tts = self.parse_token_trees_until_close_delim();
 
                 // Expand to cover the entire delimited token tree
-                let span = Span { hi: self.span.hi, ..pre_span };
+                let span = Span {
+                    hi: self.span.hi,
+                    ..pre_span
+                };
 
                 match self.token {
                     // Correct delimiter.
@@ -105,15 +108,18 @@ impl<'a> StringReader<'a> {
                         // Silently recover, the EOF token will be seen again
                         // and an error emitted then. Thus we don't pop from
                         // self.open_braces here.
-                    },
+                    }
                     _ => {}
                 }
 
-                Ok(TokenTree::Delimited(span, Delimited {
-                    delim: delim,
-                    tts: tts.into(),
-                }))
-            },
+                Ok(TokenTree::Delimited(
+                    span,
+                    Delimited {
+                        delim: delim,
+                        tts: tts.into(),
+                    },
+                ))
+            }
             token::CloseDelim(_) => {
                 // An unexpected closing delimiter (i.e., there is no
                 // matching opening delimiter).
@@ -121,7 +127,7 @@ impl<'a> StringReader<'a> {
                 let msg = format!("unexpected close delimiter: `{}`", token_str);
                 let err = self.sess.span_diagnostic.struct_span_err(self.span, &msg);
                 Err(err)
-            },
+            }
             _ => {
                 let tt = TokenTree::Token(self.span, self.token.clone());
                 self.real_token();

@@ -8,12 +8,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use self::SmallVectorRepr::*;
 use self::IntoIterRepr::*;
+use self::SmallVectorRepr::*;
 
-use std::ops;
-use std::iter::{IntoIterator, FromIterator};
+use std::iter::{FromIterator, IntoIterator};
 use std::mem;
+use std::ops;
 use std::slice;
 use std::vec;
 
@@ -49,7 +49,7 @@ impl<T> Into<Vec<T>> for SmallVector<T> {
 }
 
 impl<T> FromIterator<T> for SmallVector<T> {
-    fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> SmallVector<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> SmallVector<T> {
         let mut v = SmallVector::zero();
         v.extend(iter);
         v
@@ -57,7 +57,7 @@ impl<T> FromIterator<T> for SmallVector<T> {
 }
 
 impl<T> Extend<T> for SmallVector<T> {
-    fn extend<I: IntoIterator<Item=T>>(&mut self, iter: I) {
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
         for val in iter {
             self.push(val);
         }
@@ -96,7 +96,7 @@ impl<T> SmallVector<T> {
                 let one = mem::replace(&mut self.repr, Zero);
                 match one {
                     One(v1) => Some(v1),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
             Many(ref mut vs) => vs.pop(),
@@ -110,10 +110,10 @@ impl<T> SmallVector<T> {
                 let one = mem::replace(&mut self.repr, Zero);
                 match one {
                     One(v1) => mem::replace(&mut self.repr, Many(vec![v1, v])),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 };
             }
-            Many(ref mut vs) => vs.push(v)
+            Many(ref mut vs) => vs.push(v),
         }
     }
 
@@ -127,7 +127,7 @@ impl<T> SmallVector<T> {
         match self.repr {
             One(ref v) if idx == 0 => v,
             Many(ref vs) => &vs[idx],
-            _ => panic!("out of bounds access")
+            _ => panic!("out of bounds access"),
         }
     }
 
@@ -141,7 +141,7 @@ impl<T> SmallVector<T> {
                     panic!(err)
                 }
             }
-            _ => panic!(err)
+            _ => panic!(err),
         }
     }
 
@@ -149,11 +149,13 @@ impl<T> SmallVector<T> {
         match self.repr {
             Zero => 0,
             One(..) => 1,
-            Many(ref vals) => vals.len()
+            Many(ref vals) => vals.len(),
         }
     }
 
-    pub fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
     pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> SmallVector<U> {
         let repr = match self.repr {
@@ -174,10 +176,8 @@ impl<T> ops::Deref for SmallVector<T> {
                 let result: &[T] = &[];
                 result
             }
-            One(ref v) => {
-                unsafe { slice::from_raw_parts(v, 1) }
-            }
-            Many(ref vs) => vs
+            One(ref v) => unsafe { slice::from_raw_parts(v, 1) },
+            Many(ref vs) => vs,
         }
     }
 }
@@ -189,10 +189,8 @@ impl<T> ops::DerefMut for SmallVector<T> {
                 let result: &mut [T] = &mut [];
                 result
             }
-            One(ref mut v) => {
-                unsafe { slice::from_raw_parts_mut(v, 1) }
-            }
-            Many(ref mut vs) => vs
+            One(ref mut v) => unsafe { slice::from_raw_parts_mut(v, 1) },
+            Many(ref mut vs) => vs,
         }
     }
 }
@@ -204,7 +202,7 @@ impl<T> IntoIterator for SmallVector<T> {
         let repr = match self.repr {
             Zero => ZeroIterator,
             One(v) => OneIterator(v),
-            Many(vs) => ManyIterator(vs.into_iter())
+            Many(vs) => ManyIterator(vs.into_iter()),
         };
         IntoIter { repr: repr }
     }
@@ -231,10 +229,10 @@ impl<T> Iterator for IntoIter<T> {
                 mem::swap(&mut self.repr, &mut replacement);
                 match replacement {
                     OneIterator(v) => Some(v),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
-            ManyIterator(ref mut inner) => inner.next()
+            ManyIterator(ref mut inner) => inner.next(),
         }
     }
 
@@ -242,20 +240,23 @@ impl<T> Iterator for IntoIter<T> {
         match self.repr {
             ZeroIterator => (0, Some(0)),
             OneIterator(..) => (1, Some(1)),
-            ManyIterator(ref inner) => inner.size_hint()
+            ManyIterator(ref inner) => inner.size_hint(),
         }
     }
 }
 
 impl<T> MoveMap<T> for SmallVector<T> {
     fn move_flat_map<F, I>(self, mut f: F) -> Self
-        where F: FnMut(T) -> I,
-              I: IntoIterator<Item=T>
+    where
+        F: FnMut(T) -> I,
+        I: IntoIterator<Item = T>,
     {
         match self.repr {
             Zero => Self::zero(),
             One(v) => f(v).into_iter().collect(),
-            Many(vs) => SmallVector { repr: Many(vs.move_flat_map(f)) },
+            Many(vs) => SmallVector {
+                repr: Many(vs.move_flat_map(f)),
+            },
         }
     }
 }

@@ -36,34 +36,34 @@
 //!   implementation changes (using a special thread-local heap, for example).
 //!   Moreover, a switch to, e.g. `P<'a, T>` would be easy and mostly automated.
 
-use std::fmt::{self, Display, Debug};
+use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
 use std::ops::Deref;
 use std::{mem, ptr, slice, vec};
 
-use rustc_data_structures::stable_hasher::{StableHasher, StableHasherResult,
-                                           HashStable};
+use rustc_data_structures::stable_hasher::{HashStable, StableHasher, StableHasherResult};
 
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// An owned smart pointer.
 #[derive(Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct P<T: ?Sized> {
-    ptr: Box<T>
+    ptr: Box<T>,
 }
 
 #[allow(non_snake_case)]
 /// Construct a `P<T>` from a `T` value.
 pub fn P<T: 'static>(value: T) -> P<T> {
     P {
-        ptr: Box::new(value)
+        ptr: Box::new(value),
     }
 }
 
 impl<T: 'static> P<T> {
     /// Move out of the pointer.
     /// Intended for chaining transformations not covered by `map`.
-    pub fn and_then<U, F>(self, f: F) -> U where
+    pub fn and_then<U, F>(self, f: F) -> U
+    where
         F: FnOnce(T) -> U,
     {
         f(*self.ptr)
@@ -74,7 +74,8 @@ impl<T: 'static> P<T> {
     }
 
     /// Transform the inner value, consuming `self` and producing a new `P<T>`.
-    pub fn map<F>(mut self, f: F) -> P<T> where
+    pub fn map<F>(mut self, f: F) -> P<T>
+    where
         F: FnOnce(T) -> T,
     {
         let p: *mut T = &mut *self.ptr;
@@ -90,7 +91,7 @@ impl<T: 'static> P<T> {
 
             // Recreate self from the raw pointer.
             P {
-                ptr: Box::from_raw(p)
+                ptr: Box::from_raw(p),
             }
         }
     }
@@ -129,20 +130,24 @@ impl<T> fmt::Pointer for P<T> {
 }
 
 impl<'de, T> Deserialize<'de> for P<T>
-    where T: Deserialize<'de> + 'static
+where
+    T: Deserialize<'de> + 'static,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         T::deserialize(deserializer).map(P)
     }
 }
 
 impl<T> Serialize for P<T>
-    where T: Serialize
+where
+    T: Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         (**self).serialize(serializer)
     }
@@ -150,12 +155,16 @@ impl<T> Serialize for P<T>
 
 impl<T> P<[T]> {
     pub fn new() -> P<[T]> {
-        P { ptr: Default::default() }
+        P {
+            ptr: Default::default(),
+        }
     }
 
     #[inline(never)]
     pub fn from_vec(v: Vec<T>) -> P<[T]> {
-        P { ptr: v.into_boxed_slice() }
+        P {
+            ptr: v.into_boxed_slice(),
+        }
     }
 
     #[inline(never)]
@@ -190,7 +199,7 @@ impl<T> Into<Vec<T>> for P<[T]> {
 }
 
 impl<T> FromIterator<T> for P<[T]> {
-    fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> P<[T]> {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> P<[T]> {
         P::from_vec(iter.into_iter().collect())
     }
 }
@@ -213,31 +222,34 @@ impl<'a, T> IntoIterator for &'a P<[T]> {
 }
 
 impl<T> Serialize for P<[T]>
-    where T: Serialize
+where
+    T: Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         (**self).serialize(serializer)
     }
 }
 
 impl<'de, T> Deserialize<'de> for P<[T]>
-    where T: Deserialize<'de>
+where
+    T: Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         Deserialize::deserialize(deserializer).map(P::from_vec)
     }
 }
 
 impl<CTX, T> HashStable<CTX> for P<T>
-    where T: ?Sized + HashStable<CTX>
+where
+    T: ?Sized + HashStable<CTX>,
 {
-    fn hash_stable<W: StableHasherResult>(&self,
-                                          hcx: &mut CTX,
-                                          hasher: &mut StableHasher<W>) {
+    fn hash_stable<W: StableHasherResult>(&self, hcx: &mut CTX, hasher: &mut StableHasher<W>) {
         (**self).hash_stable(hcx, hasher);
     }
 }

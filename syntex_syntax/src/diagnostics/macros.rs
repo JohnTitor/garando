@@ -10,19 +10,23 @@
 
 // FIXME syntex
 macro_rules! __register_diagnostic {
-    ($code:tt, $description:tt) => ();
-    ($code:tt) => ();
+    ($code:tt, $description:tt) => {};
+    ($code:tt) => {};
 }
 
 // FIXME syntex
 macro_rules! __diagnostic_used {
-    ($code:tt) => ();
+    ($code:tt) => {};
 }
 
 #[macro_export]
 macro_rules! register_diagnostic {
-    ($code:tt, $description:tt) => (__register_diagnostic! { $code, $description });
-    ($code:tt) => (__register_diagnostic! { $code })
+    ($code:tt, $description:tt) => {
+        __register_diagnostic! { $code, $description }
+    };
+    ($code:tt) => {
+        __register_diagnostic! { $code }
+    };
 }
 
 #[macro_export]

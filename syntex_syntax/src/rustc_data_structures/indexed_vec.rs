@@ -8,16 +8,16 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::fmt;
 use std::fmt::Debug;
 use std::iter::FromIterator;
-use std::slice;
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
-use std::fmt;
-use std::vec;
+use std::slice;
 use std::u32;
+use std::vec;
 
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Represents some newtyped `usize` wrapper.
 ///
@@ -28,41 +28,55 @@ pub trait Idx: Copy + 'static + Eq + Debug {
 }
 
 impl Idx for usize {
-    fn new(idx: usize) -> Self { idx }
-    fn index(self) -> usize { self }
+    fn new(idx: usize) -> Self {
+        idx
+    }
+    fn index(self) -> usize {
+        self
+    }
 }
 
 impl Idx for u32 {
-    fn new(idx: usize) -> Self { assert!(idx <= u32::MAX as usize); idx as u32 }
-    fn index(self) -> usize { self as usize }
+    fn new(idx: usize) -> Self {
+        assert!(idx <= u32::MAX as usize);
+        idx as u32
+    }
+    fn index(self) -> usize {
+        self as usize
+    }
 }
 
 #[derive(Clone)]
 pub struct IndexVec<I: Idx, T> {
     pub raw: Vec<T>,
-    _marker: PhantomData<dyn Fn(&I)>
+    _marker: PhantomData<dyn Fn(&I)>,
 }
 
 impl<I, T> Serialize for IndexVec<I, T>
-    where I: Idx,
-          T: Serialize
+where
+    I: Idx,
+    T: Serialize,
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         self.raw.serialize(serializer)
     }
 }
 
 impl<'de, I, T> Deserialize<'de> for IndexVec<I, T>
-    where I: Idx,
-          T: Deserialize<'de>
+where
+    I: Idx,
+    T: Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
-        Deserialize::deserialize(deserializer).map(|v| {
-            IndexVec { raw: v, _marker: PhantomData }
+        Deserialize::deserialize(deserializer).map(|v| IndexVec {
+            raw: v,
+            _marker: PhantomData,
         })
     }
 }
@@ -76,26 +90,40 @@ impl<I: Idx, T: fmt::Debug> fmt::Debug for IndexVec<I, T> {
 impl<I: Idx, T> IndexVec<I, T> {
     #[inline]
     pub fn new() -> Self {
-        IndexVec { raw: Vec::new(), _marker: PhantomData }
+        IndexVec {
+            raw: Vec::new(),
+            _marker: PhantomData,
+        }
     }
 
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
-        IndexVec { raw: Vec::with_capacity(capacity), _marker: PhantomData }
+        IndexVec {
+            raw: Vec::with_capacity(capacity),
+            _marker: PhantomData,
+        }
     }
 
     #[inline]
     pub fn from_elem<S>(elem: T, universe: &IndexVec<I, S>) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
-        IndexVec { raw: vec![elem; universe.len()], _marker: PhantomData }
+        IndexVec {
+            raw: vec![elem; universe.len()],
+            _marker: PhantomData,
+        }
     }
 
     #[inline]
     pub fn from_elem_n(elem: T, n: usize) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
-        IndexVec { raw: vec![elem; n], _marker: PhantomData }
+        IndexVec {
+            raw: vec![elem; n],
+            _marker: PhantomData,
+        }
     }
 
     #[inline]
@@ -200,8 +228,14 @@ impl<I: Idx, T> Extend<T> for IndexVec<I, T> {
 
 impl<I: Idx, T> FromIterator<T> for IndexVec<I, T> {
     #[inline]
-    fn from_iter<J>(iter: J) -> Self where J: IntoIterator<Item=T> {
-        IndexVec { raw: FromIterator::from_iter(iter), _marker: PhantomData }
+    fn from_iter<J>(iter: J) -> Self
+    where
+        J: IntoIterator<Item = T>,
+    {
+        IndexVec {
+            raw: FromIterator::from_iter(iter),
+            _marker: PhantomData,
+        }
     }
 }
 
@@ -213,7 +247,6 @@ impl<I: Idx, T> IntoIterator for IndexVec<I, T> {
     fn into_iter(self) -> vec::IntoIter<T> {
         self.raw.into_iter()
     }
-
 }
 
 impl<'a, I: Idx, T> IntoIterator for &'a IndexVec<I, T> {

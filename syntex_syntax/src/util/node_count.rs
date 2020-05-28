@@ -10,9 +10,9 @@
 
 // Simply gives a rought count of the number of nodes in an AST.
 
-use visit::*;
 use ast::*;
 use syntax_pos::Span;
+use visit::*;
 
 pub struct NodeCounter {
     pub count: usize,
@@ -20,9 +20,7 @@ pub struct NodeCounter {
 
 impl NodeCounter {
     pub fn new() -> NodeCounter {
-        NodeCounter {
-            count: 0,
-        }
+        NodeCounter { count: 0 }
     }
 }
 
@@ -99,8 +97,7 @@ impl<'ast> Visitor<'ast> for NodeCounter {
         self.count += 1;
         walk_poly_trait_ref(self, t, m)
     }
-    fn visit_variant_data(&mut self, s: &VariantData, _: Ident,
-                          _: &Generics, _: NodeId, _: Span) {
+    fn visit_variant_data(&mut self, s: &VariantData, _: Ident, _: &Generics, _: NodeId, _: Span) {
         self.count += 1;
         walk_struct_def(self, s)
     }
@@ -108,8 +105,13 @@ impl<'ast> Visitor<'ast> for NodeCounter {
         self.count += 1;
         walk_struct_field(self, s)
     }
-    fn visit_enum_def(&mut self, enum_definition: &EnumDef,
-                      generics: &Generics, item_id: NodeId, _: Span) {
+    fn visit_enum_def(
+        &mut self,
+        enum_definition: &EnumDef,
+        generics: &Generics,
+        item_id: NodeId,
+        _: Span,
+    ) {
         self.count += 1;
         walk_enum_def(self, enum_definition, generics, item_id)
     }

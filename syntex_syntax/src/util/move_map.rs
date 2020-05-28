@@ -11,19 +11,24 @@
 use std::ptr;
 
 pub trait MoveMap<T>: Sized {
-    fn move_map<F>(self, mut f: F) -> Self where F: FnMut(T) -> T {
+    fn move_map<F>(self, mut f: F) -> Self
+    where
+        F: FnMut(T) -> T,
+    {
         self.move_flat_map(|e| Some(f(e)))
     }
 
     fn move_flat_map<F, I>(self, f: F) -> Self
-        where F: FnMut(T) -> I,
-              I: IntoIterator<Item=T>;
+    where
+        F: FnMut(T) -> I,
+        I: IntoIterator<Item = T>;
 }
 
 impl<T> MoveMap<T> for Vec<T> {
     fn move_flat_map<F, I>(mut self, mut f: F) -> Self
-        where F: FnMut(T) -> I,
-              I: IntoIterator<Item=T>
+    where
+        F: FnMut(T) -> I,
+        I: IntoIterator<Item = T>,
     {
         let mut read_i = 0;
         let mut write_i = 0;
@@ -69,8 +74,9 @@ impl<T> MoveMap<T> for Vec<T> {
 
 impl<T> MoveMap<T> for ::ptr::P<[T]> {
     fn move_flat_map<F, I>(self, f: F) -> Self
-        where F: FnMut(T) -> I,
-              I: IntoIterator<Item=T>
+    where
+        F: FnMut(T) -> I,
+        I: IntoIterator<Item = T>,
     {
         ::ptr::P::from_vec(self.into_vec().move_flat_map(f))
     }

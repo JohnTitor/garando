@@ -15,14 +15,14 @@
 //! and definition contexts*. J. Funct. Program. 22, 2 (March 2012), 181-216.
 //! DOI=10.1017/S0956796812000093 http://dx.doi.org/10.1017/S0956796812000093
 
-use Span;
 use symbol::{Ident, Symbol};
+use Span;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 
-use serde::{Serialize, Serializer, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// A SyntaxContext represents a chain of macro expansions (represented by marks).
 #[derive(Clone, Copy, PartialEq, Eq, Default, PartialOrd, Ord, Hash)]
@@ -51,7 +51,11 @@ struct MarkData {
 impl Mark {
     pub fn fresh(parent: Mark) -> Self {
         HygieneData::with(|data| {
-            data.marks.push(MarkData { parent, modern: false, expn_info: None });
+            data.marks.push(MarkData {
+                parent,
+                modern: false,
+                expn_info: None,
+            });
             Mark(data.marks.len() as u32 - 1)
         })
     }
@@ -78,13 +82,11 @@ impl Mark {
     }
 
     pub fn modern(mut self) -> Mark {
-        HygieneData::with(|data| {
-            loop {
-                if self == Mark::root() || data.marks[self.0 as usize].modern {
-                    return self;
-                }
-                self = data.marks[self.0 as usize].parent;
+        HygieneData::with(|data| loop {
+            if self == Mark::root() || data.marks[self.0 as usize].modern {
+                return self;
             }
+            self = data.marks[self.0 as usize].parent;
         })
     }
 
@@ -153,15 +155,18 @@ impl SyntaxContext {
             }
 
             let modern = if data.marks[mark.0 as usize].modern {
-                *data.markings.entry((ctxt_data.modern, mark)).or_insert_with(|| {
-                    let modern = SyntaxContext(syntax_contexts.len() as u32);
-                    syntax_contexts.push(SyntaxContextData {
-                        outer_mark: mark,
-                        prev_ctxt: ctxt_data.modern,
-                        modern,
-                    });
-                    modern
-                })
+                *data
+                    .markings
+                    .entry((ctxt_data.modern, mark))
+                    .or_insert_with(|| {
+                        let modern = SyntaxContext(syntax_contexts.len() as u32);
+                        syntax_contexts.push(SyntaxContextData {
+                            outer_mark: mark,
+                            prev_ctxt: ctxt_data.modern,
+                            modern,
+                        });
+                        modern
+                    })
             } else {
                 ctxt_data.modern
             };
@@ -200,8 +205,11 @@ impl SyntaxContext {
     /// via a glob import with the given `SyntaxContext`.
     /// This returns `None` if the context cannot be glob-adjusted.
     /// Otherwise, it returns the scope to use when privacy checking (see `adjust` for details).
-    pub fn glob_adjust(&mut self, expansion: Mark, mut glob_ctxt: SyntaxContext)
-                       -> Option<Option<Mark>> {
+    pub fn glob_adjust(
+        &mut self,
+        expansion: Mark,
+        mut glob_ctxt: SyntaxContext,
+    ) -> Option<Option<Mark>> {
         let mut scope = None;
         while !expansion.is_descendant_of(glob_ctxt.outer()) {
             scope = Some(glob_ctxt.remove_mark());
@@ -216,8 +224,11 @@ impl SyntaxContext {
     }
 
     /// Undo `glob_adjust` if possible:
-    pub fn reverse_glob_adjust(&mut self, expansion: Mark, mut glob_ctxt: SyntaxContext)
-                               -> Option<Option<Mark>> {
+    pub fn reverse_glob_adjust(
+        &mut self,
+        expansion: Mark,
+        mut glob_ctxt: SyntaxContext,
+    ) -> Option<Option<Mark>> {
         if self.adjust(expansion).is_some() {
             return None;
         }
@@ -263,7 +274,7 @@ pub struct ExpnInfo {
     /// pointing to the `foo!` invocation.
     pub call_site: Span,
     /// Information about the expansion.
-    pub callee: NameAndSpan
+    pub callee: NameAndSpan,
 }
 
 #[derive(Clone, Hash, Debug)]
@@ -277,15 +288,15 @@ pub struct NameAndSpan {
     /// The span of the macro definition itself. The macro may not
     /// have a sensible definition span (e.g. something defined
     /// completely inside libsyntax) in which case this is None.
-    pub span: Option<Span>
+    pub span: Option<Span>,
 }
 
 impl NameAndSpan {
     pub fn name(&self) -> Symbol {
         match self.format {
-            ExpnFormat::MacroAttribute(s) |
-            ExpnFormat::MacroBang(s) |
-            ExpnFormat::CompilerDesugaring(s) => s,
+            ExpnFormat::MacroAttribute(s)
+            | ExpnFormat::MacroBang(s)
+            | ExpnFormat::CompilerDesugaring(s) => s,
         }
     }
 }
@@ -298,12 +309,13 @@ pub enum ExpnFormat {
     /// e.g. `format!()`
     MacroBang(Symbol),
     /// Desugaring done by the compiler during HIR lowering.
-    CompilerDesugaring(Symbol)
+    CompilerDesugaring(Symbol),
 }
 
 impl Serialize for SyntaxContext {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         // FIXME(jseyfried) intercrate hygiene
         serializer.serialize_unit()
@@ -312,7 +324,8 @@ impl Serialize for SyntaxContext {
 
 impl<'de> Deserialize<'de> for SyntaxContext {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         // FIXME(jseyfried) intercrate hygiene
         Deserialize::deserialize(deserializer).map(|()| SyntaxContext::empty())
@@ -329,11 +342,12 @@ impl Symbol {
     }
 
     pub fn to_ident(self) -> Ident {
-        HygieneData::with(|data| {
-            match data.gensym_to_ctxt.get(&self) {
-                Some(&ctxt) => Ident { name: self.interned(), ctxt },
-                None => Ident::with_empty_ctxt(self),
-            }
+        HygieneData::with(|data| match data.gensym_to_ctxt.get(&self) {
+            Some(&ctxt) => Ident {
+                name: self.interned(),
+                ctxt,
+            },
+            None => Ident::with_empty_ctxt(self),
         })
     }
 }

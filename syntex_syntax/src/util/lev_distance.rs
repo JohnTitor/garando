@@ -38,29 +38,35 @@ pub fn lev_distance(a: &str, b: &str) -> usize {
             current = next;
             t_last = j;
         }
-    } dcol[t_last + 1]
+    }
+    dcol[t_last + 1]
 }
 
 /// To find the best match for a given string from an iterator of names
 /// As a loose rule to avoid the obviously incorrect suggestions, it takes
 /// an optional limit for the maximum allowable edit distance, which defaults
 /// to one-third of the given word
-pub fn find_best_match_for_name<'a, T>(iter_names: T,
-                                       lookup: &str,
-                                       dist: Option<usize>) -> Option<Symbol>
-    where T: Iterator<Item = &'a Symbol> {
+pub fn find_best_match_for_name<'a, T>(
+    iter_names: T,
+    lookup: &str,
+    dist: Option<usize>,
+) -> Option<Symbol>
+where
+    T: Iterator<Item = &'a Symbol>,
+{
     let max_dist = dist.map_or_else(|| cmp::max(lookup.len(), 3) / 3, |d| d);
     iter_names
-    .filter_map(|&name| {
-        let dist = lev_distance(lookup, &name.as_str());
-        if dist <= max_dist {    // filter the unwanted cases
-            Some((name, dist))
-        } else {
-            None
-        }
-    })
-    .min_by_key(|&(_, val)| val)    // extract the tuple containing the minimum edit distance
-    .map(|(s, _)| s)                // and return only the string
+        .filter_map(|&name| {
+            let dist = lev_distance(lookup, &name.as_str());
+            if dist <= max_dist {
+                // filter the unwanted cases
+                Some((name, dist))
+            } else {
+                None
+            }
+        })
+        .min_by_key(|&(_, val)| val) // extract the tuple containing the minimum edit distance
+        .map(|(s, _)| s) // and return only the string
 }
 
 #[test]
@@ -68,8 +74,9 @@ fn test_lev_distance() {
     use std::char::{from_u32, MAX};
     // Test bytelength agnosticity
     for c in (0..MAX as u32)
-             .filter_map(|i| from_u32(i))
-             .map(|i| i.to_string()) {
+        .filter_map(|i| from_u32(i))
+        .map(|i| i.to_string())
+    {
         assert_eq!(lev_distance(&c[..], &c[..]), 0);
     }
 
