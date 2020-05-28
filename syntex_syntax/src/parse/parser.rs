@@ -63,8 +63,6 @@ use std::mem;
 use std::path::{self, Path, PathBuf};
 use std::slice;
 
-use extprim::u128::u128;
-
 bitflags! {
     pub struct Restrictions: u8 {
         const RESTRICTION_STMT_EXPR         = 1 << 0;

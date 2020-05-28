@@ -32,9 +32,6 @@ use std::fmt;
 use std::rc::Rc;
 use std::u32;
 
-use extprim::i128::i128;
-use extprim::u128::u128;
-
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Copy)]
 pub struct Lifetime {
     pub id: NodeId,
@@ -1055,31 +1052,13 @@ pub enum LitKind {
     /// A character literal (`'a'`)
     Char(char),
     /// An integer literal (`1`)
-    Int(#[serde(with = "serde_u128")] u128, LitIntType),
+    Int(u128, LitIntType),
     /// A float literal (`1f64` or `1E10f64`)
     Float(Symbol, FloatTy),
     /// A float literal without a suffix (`1.0 or 1.0E10`)
     FloatUnsuffixed(Symbol),
     /// A boolean literal
     Bool(bool),
-}
-
-mod serde_u128 {
-    use extprim::u128::u128;
-    use serde::{Serialize, Serializer, Deserialize, Deserializer};
-
-    pub fn serialize<S>(u: &u128, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        (u.high64(), u.low64()).serialize(serializer)
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<u128, D::Error>
-        where D: Deserializer<'de>
-    {
-        let (hi, lo) = Deserialize::deserialize(deserializer)?;
-        Ok(u128::from_parts(hi, lo))
-    }
 }
 
 impl LitKind {
@@ -1213,7 +1192,7 @@ impl IntTy {
         // cast to a u128 so we can correctly print INT128_MIN. All integral types
         // are parsed as u128, so we wouldn't want to print an extra negative
         // sign.
-        format!("{}{}", val.as_u128(), self.ty_to_string())
+        format!("{}{}", val as u128, self.ty_to_string())
     }
 
     pub fn bit_width(&self) -> Option<usize> {

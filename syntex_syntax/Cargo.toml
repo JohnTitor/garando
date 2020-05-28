@@ -12,7 +12,6 @@ edition = "2015"
 
 [dependencies]
 bitflags = "0.9"
-extprim = { git = "https://github.com/JohnTitor/extprim.git", branch = "llvm-asm" }
 log = "0.3"
 serde = { version = "1.0", features = ["rc"] }
 serde_derive = "1.0"

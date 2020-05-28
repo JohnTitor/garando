@@ -8,9 +8,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use extprim::i128::i128;
-use extprim::u128::u128;
-
 #[inline]
 /// encodes an integer using unsigned leb128 encoding and stores
 /// the result using a callback function.
@@ -23,7 +20,7 @@ pub fn write_unsigned_leb128_to<W>(mut value: u128, mut write: W) -> usize
 {
     let mut position = 0;
     loop {
-        let mut byte = (value & u128::from(0x7Fu64)).low64() as u8;
+        let mut byte = (value & u128::from(0x7Fu64)) as u8;
         value >>= 7;
         if value != u128::from(0u64) {
             byte |= 0x80;
@@ -53,7 +50,7 @@ pub fn write_signed_leb128_to<W>(mut value: i128, mut write: W) -> usize
     let mut position = 0;
 
     loop {
-        let mut byte = (value.low64() as u8) & 0x7f;
+        let mut byte = (value as u8) & 0x7f;
         value >>= 7;
         let more = !((((value == i128::from(0)) && ((byte & 0x40) == 0)) ||
                       ((value == i128::from(-1)) && ((byte & 0x40) != 0))));
