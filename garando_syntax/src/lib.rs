@@ -17,12 +17,12 @@
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
     html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
-    html_root_url = "https://docs.rs/syntex_syntax/0.59.1",
+    html_root_url = "https://docs.rs/garando_syntax/0.59.1",
     test(attr(deny(warnings)))
 )]
 
-pub use syntex_errors as errors;
-use syntex_pos as syntax_pos;
+pub use garando_errors as errors;
+use garando_pos as syntax_pos;
 mod rustc_data_structures;
 
 // A variant of 'try!' that panics on an Err. This is used as a crutch on the

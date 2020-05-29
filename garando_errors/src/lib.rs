@@ -11,10 +11,10 @@
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
     html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
-    html_root_url = "https://docs.rs/syntex_errors/0.59.1"
+    html_root_url = "https://docs.rs/garando_errors/0.59.1"
 )]
 
-use syntex_pos as syntax_pos;
+use garando_pos as syntax_pos;
 
 pub use crate::emitter::ColorConfig;
 

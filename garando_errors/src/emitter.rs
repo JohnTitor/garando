@@ -1235,15 +1235,15 @@ fn draw_multiline_line(
     buffer.putc(line, offset + depth - 1, '|', style);
 }
 
-trait SyntexContains<Idx> {
-    fn syntex_contains(&self, item: Idx) -> bool;
+trait GarandoContains<Idx> {
+    fn garando_contains(&self, item: Idx) -> bool;
 }
 
-impl<Idx> SyntexContains<Idx> for ::std::ops::Range<Idx>
+impl<Idx> GarandoContains<Idx> for ::std::ops::Range<Idx>
 where
     Idx: PartialOrd,
 {
-    fn syntex_contains(&self, item: Idx) -> bool {
+    fn garando_contains(&self, item: Idx) -> bool {
         (self.start <= item) && (item < self.end)
     }
 }
@@ -1256,8 +1256,8 @@ fn num_overlap(
     inclusive: bool,
 ) -> bool {
     let extra = if inclusive { 1 } else { 0 };
-    (b_start..b_end + extra).syntex_contains(a_start)
-        || (a_start..a_end + extra).syntex_contains(b_start)
+    (b_start..b_end + extra).garando_contains(a_start)
+        || (a_start..a_end + extra).garando_contains(b_start)
 }
 fn overlaps(a1: &Annotation, a2: &Annotation, padding: usize) -> bool {
     num_overlap(

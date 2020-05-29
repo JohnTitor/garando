@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "syntex_pos",
-    "syntex_errors",
-    "syntex_syntax",
+    "garando_pos",
+    "garando_errors",
+    "garando_syntax",
 ]

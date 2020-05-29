@@ -1678,7 +1678,7 @@ impl<'a> StringReader<'a> {
 // This tests the character for the unicode property 'PATTERN_WHITE_SPACE' which
 // is guaranteed to be forward compatible. http://unicode.org/reports/tr31/#R3
 pub fn is_pattern_whitespace(c: Option<char>) -> bool {
-    // FIXME syntex
+    // FIXME garando
     match c.unwrap_or('\x00') {
         ' ' | '\n' | '\t' | '\r' => true,
         _ => false,

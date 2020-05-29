@@ -1,11 +1,11 @@
 [package]
-name = "syntex_pos"
+name = "garando_pos"
 version = "0.59.1" # remember to update html_root_url
 authors = ["Erick Tryzelaar <erick.tryzelaar@gmail.com>", "David Tolnay <dtolnay@gmail.com>"]
 license = "MIT/Apache-2.0"
 description = "Backport of libsyntax_pos"
-repository = "https://github.com/serde-rs/syntex"
-documentation = "https://docs.rs/syntex_pos"
+repository = "https://github.com/serde-rs/garando"
+documentation = "https://docs.rs/garando_pos"
 readme = "README.md"
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
 edition = "2018"
