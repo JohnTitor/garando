@@ -1,7 +1,7 @@
 Rust syntax backport
 ====================
 
-[![Build Status](https://api.travis-ci.org/serde-rs/garando.png?branch=master)](https://travis-ci.org/serde-rs/garando)
+[![Build Status](https://api.travis-ci.org/JohnTitor/garando.png?branch=master)](https://travis-ci.org/JohnTitor/garando)
 [![Latest Version](https://img.shields.io/crates/v/garando_syntax.svg)](https://crates.io/crates/garando_syntax)
 
 This repository contains a backport of the following unstable crates from the

@@ -29,7 +29,7 @@ Check out garando.
 
 ```
 rust$ cd ..
-$ git clone https://github.com/serde-rs/garando
+$ git clone https://github.com/JohnTitor/garando
 $ cd garando
 ```
 
