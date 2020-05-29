@@ -95,7 +95,7 @@ impl<'de> Deserialize<'de> for Ident {
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Symbol(u32);
 
-// FIXME syntex
+// FIXME garando
 // The interner in thread-local, so `Symbol` shouldn't move between threads.
 // impl !Send for Symbol { }
 
@@ -395,7 +395,7 @@ impl<'a> ::std::cmp::PartialEq<InternedString> for &'a String {
     }
 }
 
-// FIXME syntex
+// FIXME garando
 // impl !Send for InternedString { }
 
 impl ::std::ops::Deref for InternedString {

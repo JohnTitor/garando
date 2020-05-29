@@ -8,13 +8,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-// FIXME syntex
+// FIXME garando
 macro_rules! __register_diagnostic {
     ($code:tt, $description:tt) => {};
     ($code:tt) => {};
 }
 
-// FIXME syntex
+// FIXME garando
 macro_rules! __diagnostic_used {
     ($code:tt) => {};
 }

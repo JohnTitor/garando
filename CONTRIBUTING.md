@@ -1,4 +1,4 @@
-How to do a Syntex release
+How to do a garando release
 ==========================
 
 First we need to prep the Rust repository. Check out Rust.
@@ -25,60 +25,60 @@ rust$ git checkout $RUST_SHA
 
 ---
 
-Check out Syntex.
+Check out garando.
 
 ```
 rust$ cd ..
-$ git clone https://github.com/serde-rs/syntex
-$ cd syntex
+$ git clone https://github.com/JohnTitor/garando
+$ cd garando
 ```
 
 Check out the `rust` branch, which tracks the upstream Rust `libsyntax`. Delete
-the syntex source directories and replace them with the ones from upstream.
+the garando source directories and replace them with the ones from upstream.
 
 ```
-syntex$ git checkout origin/rust
-syntex$ rm -r syntex_syntax/src syntex_pos/src syntex_errors/src
-syntex$ cp -r ../rust/src/libsyntax syntex_syntax/src
-syntex$ cp -r ../rust/src/libsyntax_pos syntex_pos/src
-syntex$ cp -r ../rust/src/librustc_errors syntex_errors/src
-syntex$ git add .
-syntex$ git commit -m "Sync with $(rustc +nightly --version)"
-syntex$ git push origin HEAD:rust
+garando$ git checkout origin/rust
+garando$ rm -r garando_syntax/src garando_pos/src garando_errors/src
+garando$ cp -r ../rust/src/libsyntax garando_syntax/src
+garando$ cp -r ../rust/src/libsyntax_pos garando_pos/src
+garando$ cp -r ../rust/src/librustc_errors garando_errors/src
+garando$ git add .
+garando$ git commit -m "Sync with $(rustc +nightly --version)"
+garando$ git push origin HEAD:rust
 ```
 
 Switch back to the master branch, merge it in, and resolve any conflicts.
 
 ```
-syntex$ git checkout origin/master
-syntex$ git merge origin/rust
+garando$ git checkout origin/master
+garando$ git merge origin/rust
 # ... conflict resolution :-)
 ```
 
 Confirm that everything compiles on stable Rust and newer.
 
 ```
-syntex$ cd syntex_syntax
-syntex/syntex_syntax$ cargo +stable build
-syntex/syntex_syntax$ cargo +beta build
-syntex/syntex_syntax$ cargo +nightly build
+garando$ cd garando_syntax
+garando/garando_syntax$ cargo +stable build
+garando/garando_syntax$ cargo +beta build
+garando/garando_syntax$ cargo +nightly build
 ```
 
 Once it works locally, push the `master` branch for CI.
 
 ```
-syntex$ git push origin HEAD:refs/heads/up
+garando$ git push origin HEAD:refs/heads/up
 ```
 
 Resolve any build issues, bump the version number, tag it, and publish.
 
 ```
-syntex$ GIT_COMMITTER_DATE="$(git show --format=%aD | head -1)" git tag -s -m "Release 0.59.0" v0.59.0
-syntex$ git push origin --tags
-syntex$ cd syntex_pos
-syntex/syntex_pos$ cargo publish
-syntex/syntex_pos$ cd ../syntex_errors
-syntex/syntex_errors$ cargo publish
-syntex/syntex_errors$ cd ../syntex_syntax
-syntex/syntex_syntax$ cargo publish
+garando$ GIT_COMMITTER_DATE="$(git show --format=%aD | head -1)" git tag -s -m "Release 0.59.0" v0.59.0
+garando$ git push origin --tags
+garando$ cd garando_pos
+garando/garando_pos$ cargo publish
+garando/garando_pos$ cd ../garando_errors
+garando/garando_errors$ cargo publish
+garando/garando_errors$ cd ../garando_syntax
+garando/garando_syntax$ cargo publish
 ```
