@@ -1,7 +1,12 @@
 Rust syntax backport
 ====================
 
-[![Build Status](https://api.travis-ci.org/JohnTitor/garando.png?branch=master)](https://travis-ci.org/JohnTitor/garando)
+| Environment | Build status |
+| -- | -- |
+| Linux | ![CI (Linux)](https://github.com/JohnTitor/garando/workflows/CI%20(Linux)/badge.svg) |
+| macOS | ![CI (macOS)](https://github.com/JohnTitor/garando/workflows/CI%20(macOS)/badge.svg) |
+| Windows | ![CI (Windows)](https://github.com/JohnTitor/garando/workflows/CI%20(Windows)/badge.svg) |
+
 [![Latest Version](https://img.shields.io/crates/v/garando_syntax.svg)](https://crates.io/crates/garando_syntax)
 
 This repository contains a backport of the following unstable crates from the
@@ -25,9 +30,9 @@ The backported code compiles on the most recent stable release of Rust.
 garando is licensed under either of
 
  * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
-   http://www.apache.org/licenses/LICENSE-2.0)
+    https://www.apache.org/licenses/LICENSE-2.0)
  * MIT license ([LICENSE-MIT](LICENSE-MIT) or
-   http://opensource.org/licenses/MIT)
+    https://opensource.org/licenses/MIT)
 
 at your option.
 

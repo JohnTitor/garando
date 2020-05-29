@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "garando_pos",
-    "garando_errors",
-    "garando_syntax",
+  "garando_pos",
+  "garando_errors",
+  "garando_syntax",
 ]
