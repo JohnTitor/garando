@@ -4,13 +4,6 @@
 //!
 //! This API is completely unstable and subject to change.
 
-#![doc(
-    html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
-    html_favicon_url = "https://doc.rust-lang.org/favicon.ico",
-    html_root_url = "https://docs.rs/garando_syntax/0.59.1",
-    test(attr(deny(warnings)))
-)]
-
 pub use garando_errors as errors;
 use garando_pos as syntax_pos;
 mod rustc_data_structures;
