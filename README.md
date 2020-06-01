@@ -1,4 +1,4 @@
-Rust syntax backport
+garando, Rust syntax backport
 ====================
 
 | Environment | Build status |
@@ -12,27 +12,24 @@ Rust syntax backport
 This repository contains a backport of the following unstable crates from the
 Rust compiler.
 
-- [`libsyntax`] => [`garando_syntax`]
-- [`libsyntax_pos`] => [`garando_pos`]
-- [`librustc_errors`] => [`garando_errors`]
+- `libsyntax` => [`garando_syntax`]
+- `libsyntax_pos` => [`garando_pos`]
+- `librustc_errors` => [`garando_errors`]
 
-[`libsyntax`]: https://github.com/rust-lang/rust/tree/master/src/libsyntax
 [`garando_syntax`]: https://docs.rs/garando_syntax
-[`libsyntax_pos`]: https://github.com/rust-lang/rust/tree/master/src/libsyntax_pos
 [`garando_pos`]: https://docs.rs/garando_pos
-[`librustc_errors`]: https://github.com/rust-lang/rust/tree/master/src/librustc_errors
 [`garando_errors`]: https://docs.rs/garando_errors
 
-The backported code compiles on the most recent stable release of Rust.
+The code compiles on the most recent stable release of Rust.
 
 ## License
 
 garando is licensed under either of
 
- * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
-    https://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or
-    https://opensource.org/licenses/MIT)
+* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or
+   https://www.apache.org/licenses/LICENSE-2.0)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or
+   https://opensource.org/licenses/MIT)
 
 at your option.
 
