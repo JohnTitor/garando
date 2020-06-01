@@ -1,5 +1,5 @@
 [package]
-name = "garando_syntax2"
+name = "garando_syntax"
 version = "0.1.0"
 authors = ["Yuki Okushi <huyuumi.dev@gmail.com>"]
 license = "MIT/Apache-2.0"
