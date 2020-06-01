@@ -13,6 +13,6 @@ edition = "2018"
 [dependencies]
 libc = "0.2"
 serde = { version = "1.0", features = ["derive"] }
-garando_pos = { version = "0.59", path = "../garando_pos" }
+garando_pos = { version = "0.1", path = "../garando_pos" }
 term = "0.6"
 unicode-xid = "0.2"
