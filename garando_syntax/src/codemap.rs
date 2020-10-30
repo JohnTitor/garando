@@ -34,8 +34,8 @@ use errors::CodeMapper;
 /// otherwise return the call site span up to the `enclosing_sp` by
 /// following the `expn_info` chain.
 pub fn original_sp(sp: Span, enclosing_sp: Span) -> Span {
-    let call_site1 = sp.ctxt.outer().expn_info().map(|ei| ei.call_site);
-    let call_site2 = enclosing_sp.ctxt.outer().expn_info().map(|ei| ei.call_site);
+    let call_site1 = sp.ctxt().outer().expn_info().map(|ei| ei.call_site);
+    let call_site2 = enclosing_sp.ctxt().outer().expn_info().map(|ei| ei.call_site);
     match (call_site1, call_site2) {
         (None, _) => sp,
         (Some(call_site1), Some(call_site2)) if call_site1 == call_site2 => sp,
@@ -115,7 +115,7 @@ impl CodeMap {
         CodeMap {
             files: RefCell::new(Vec::new()),
             file_loader: Box::new(RealFileLoader),
-            path_mapping: path_mapping,
+            path_mapping,
         }
     }
 
@@ -124,8 +124,8 @@ impl CodeMap {
                             -> CodeMap {
         CodeMap {
             files: RefCell::new(Vec::new()),
-            file_loader: file_loader,
-            path_mapping: path_mapping,
+            file_loader,
+            path_mapping,
         }
     }
 
@@ -158,29 +158,13 @@ impl CodeMap {
 
     /// Creates a new filemap without setting its line information. If you don't
     /// intend to set the line information yourself, you should use new_filemap_and_lines.
-    pub fn new_filemap(&self, filename: FileName, mut src: String) -> Rc<FileMap> {
+    pub fn new_filemap(&self, filename: FileName, src: String) -> Rc<FileMap> {
         let start_pos = self.next_start_pos();
         let mut files = self.files.borrow_mut();
 
-        // Remove utf-8 BOM if any.
-        if src.starts_with("\u{feff}") {
-            src.drain(..3);
-        }
-
-        let end_pos = start_pos + src.len();
-
         let (filename, was_remapped) = self.path_mapping.map_prefix(filename);
-
-        let filemap = Rc::new(FileMap {
-            name: filename,
-            name_was_remapped: was_remapped,
-            crate_of_origin: 0,
-            src: Some(Rc::new(src)),
-            start_pos: Pos::from_usize(start_pos),
-            end_pos: Pos::from_usize(end_pos),
-            lines: RefCell::new(Vec::new()),
-            multibyte_chars: RefCell::new(Vec::new()),
-        });
+        let filemap =
+            Rc::new(FileMap::new(filename, was_remapped, src, Pos::from_usize(start_pos)));
 
         files.push(filemap.clone());
 
@@ -210,6 +194,7 @@ impl CodeMap {
                                 filename: FileName,
                                 name_was_remapped: bool,
                                 crate_of_origin: u32,
+                                src_hash: u128,
                                 source_len: usize,
                                 mut file_local_lines: Vec<BytePos>,
                                 mut file_local_multibyte_chars: Vec<MultiByteChar>)
@@ -230,11 +215,13 @@ impl CodeMap {
 
         let filemap = Rc::new(FileMap {
             name: filename,
-            name_was_remapped: name_was_remapped,
-            crate_of_origin: crate_of_origin,
+            name_was_remapped,
+            crate_of_origin,
             src: None,
-            start_pos: start_pos,
-            end_pos: end_pos,
+            src_hash,
+            external_src: RefCell::new(ExternalSource::AbsentOk),
+            start_pos,
+            end_pos,
             lines: RefCell::new(file_local_lines),
             multibyte_chars: RefCell::new(file_local_multibyte_chars),
         });
@@ -245,7 +232,7 @@ impl CodeMap {
     }
 
     pub fn mk_substr_filename(&self, sp: Span) -> String {
-        let pos = self.lookup_char_pos(sp.lo);
+        let pos = self.lookup_char_pos(sp.lo());
         (format!("<{}:{}:{}>",
                  pos.file.name,
                  pos.line,
@@ -268,7 +255,7 @@ impl CodeMap {
                 assert!(chpos >= linechpos);
                 Loc {
                     file: f,
-                    line: line,
+                    line,
                     col: chpos - linechpos,
                 }
             }
@@ -312,18 +299,16 @@ impl CodeMap {
     ///    * the lhs span needs to end on the same line the rhs span begins
     ///    * the lhs span must start at or before the rhs span
     pub fn merge_spans(&self, sp_lhs: Span, sp_rhs: Span) -> Option<Span> {
-        use std::cmp;
-
         // make sure we're at the same expansion id
-        if sp_lhs.ctxt != sp_rhs.ctxt {
+        if sp_lhs.ctxt() != sp_rhs.ctxt() {
             return None;
         }
 
-        let lhs_end = match self.lookup_line(sp_lhs.hi) {
+        let lhs_end = match self.lookup_line(sp_lhs.hi()) {
             Ok(x) => x,
             Err(_) => return None
         };
-        let rhs_begin = match self.lookup_line(sp_rhs.lo) {
+        let rhs_begin = match self.lookup_line(sp_rhs.lo()) {
             Ok(x) => x,
             Err(_) => return None
         };
@@ -334,12 +319,8 @@ impl CodeMap {
         }
 
         // ensure these follow the expected order and we don't overlap
-        if (sp_lhs.lo <= sp_rhs.lo) && (sp_lhs.hi <= sp_rhs.lo) {
-            Some(Span {
-                lo: cmp::min(sp_lhs.lo, sp_rhs.lo),
-                hi: cmp::max(sp_lhs.hi, sp_rhs.hi),
-                ctxt: sp_lhs.ctxt,
-            })
+        if (sp_lhs.lo() <= sp_rhs.lo()) && (sp_lhs.hi() <= sp_rhs.lo()) {
+            Some(sp_lhs.to(sp_rhs))
         } else {
             None
         }
@@ -350,8 +331,8 @@ impl CodeMap {
             return "no-location".to_string();
         }
 
-        let lo = self.lookup_char_pos_adj(sp.lo);
-        let hi = self.lookup_char_pos_adj(sp.hi);
+        let lo = self.lookup_char_pos_adj(sp.lo());
+        let hi = self.lookup_char_pos_adj(sp.hi());
         return (format!("{}:{}:{}: {}:{}",
                         lo.filename,
                         lo.line,
@@ -361,19 +342,19 @@ impl CodeMap {
     }
 
     pub fn span_to_filename(&self, sp: Span) -> FileName {
-        self.lookup_char_pos(sp.lo).file.name.to_string()
+        self.lookup_char_pos(sp.lo()).file.name.to_string()
     }
 
     pub fn span_to_lines(&self, sp: Span) -> FileLinesResult {
         debug!("span_to_lines(sp={:?})", sp);
 
-        if sp.lo > sp.hi {
+        if sp.lo() > sp.hi() {
             return Err(SpanLinesError::IllFormedSpan(sp));
         }
 
-        let lo = self.lookup_char_pos(sp.lo);
+        let lo = self.lookup_char_pos(sp.lo());
         debug!("span_to_lines: lo={:?}", lo);
-        let hi = self.lookup_char_pos(sp.hi);
+        let hi = self.lookup_char_pos(sp.hi());
         debug!("span_to_lines: hi={:?}", hi);
 
         if lo.file.start_pos != hi.file.start_pos {
@@ -398,27 +379,27 @@ impl CodeMap {
             let line_len = lo.file.get_line(line_index)
                                   .map(|s| s.chars().count())
                                   .unwrap_or(0);
-            lines.push(LineInfo { line_index: line_index,
-                                  start_col: start_col,
+            lines.push(LineInfo { line_index,
+                                  start_col,
                                   end_col: CharPos::from_usize(line_len) });
             start_col = CharPos::from_usize(0);
         }
 
         // For the last line, it extends from `start_col` to `hi.col`:
         lines.push(LineInfo { line_index: hi.line - 1,
-                              start_col: start_col,
+                              start_col,
                               end_col: hi.col });
 
         Ok(FileLines {file: lo.file, lines: lines})
     }
 
     pub fn span_to_snippet(&self, sp: Span) -> Result<String, SpanSnippetError> {
-        if sp.lo > sp.hi {
+        if sp.lo() > sp.hi() {
             return Err(SpanSnippetError::IllFormedSpan(sp));
         }
 
-        let local_begin = self.lookup_byte_offset(sp.lo);
-        let local_end = self.lookup_byte_offset(sp.hi);
+        let local_begin = self.lookup_byte_offset(sp.lo());
+        let local_end = self.lookup_byte_offset(sp.hi());
 
         if local_begin.fm.start_pos != local_end.fm.start_pos {
             return Err(SpanSnippetError::DistinctSources(DistinctSources {
@@ -428,30 +409,31 @@ impl CodeMap {
                       local_end.fm.start_pos)
             }));
         } else {
-            match local_begin.fm.src {
-                Some(ref src) => {
-                    let start_index = local_begin.pos.to_usize();
-                    let end_index = local_end.pos.to_usize();
-                    let source_len = (local_begin.fm.end_pos -
-                                      local_begin.fm.start_pos).to_usize();
+            self.ensure_filemap_source_present(local_begin.fm.clone());
 
-                    if start_index > end_index || end_index > source_len {
-                        return Err(SpanSnippetError::MalformedForCodemap(
-                            MalformedCodemapPositions {
-                                name: local_begin.fm.name.clone(),
-                                source_len: source_len,
-                                begin_pos: local_begin.pos,
-                                end_pos: local_end.pos,
-                            }));
-                    }
+            let start_index = local_begin.pos.to_usize();
+            let end_index = local_end.pos.to_usize();
+            let source_len = (local_begin.fm.end_pos -
+                              local_begin.fm.start_pos).to_usize();
 
-                    return Ok((&src[start_index..end_index]).to_string())
-                }
-                None => {
-                    return Err(SpanSnippetError::SourceNotAvailable {
-                        filename: local_begin.fm.name.clone()
-                    });
-                }
+            if start_index > end_index || end_index > source_len {
+                return Err(SpanSnippetError::MalformedForCodemap(
+                    MalformedCodemapPositions {
+                        name: local_begin.fm.name.clone(),
+                        source_len,
+                        begin_pos: local_begin.pos,
+                        end_pos: local_end.pos,
+                    }));
+            }
+
+            if let Some(ref src) = local_begin.fm.src {
+                return Ok((&src[start_index..end_index]).to_string());
+            } else if let Some(src) = local_begin.fm.external_src.borrow().get_source() {
+                return Ok((&src[start_index..end_index]).to_string());
+            } else {
+                return Err(SpanSnippetError::SourceNotAvailable {
+                    filename: local_begin.fm.name.clone()
+                });
             }
         }
     }
@@ -462,7 +444,7 @@ impl CodeMap {
             Ok(snippet) => {
                 let snippet = snippet.split(c).nth(0).unwrap_or("").trim_right();
                 if !snippet.is_empty() && !snippet.contains('\n') {
-                    Span { hi: BytePos(sp.lo.0 + snippet.len() as u32), ..sp }
+                    sp.with_hi(BytePos(sp.lo().0 + snippet.len() as u32))
                 } else {
                     sp
                 }
@@ -563,6 +545,20 @@ impl CodeMapper for CodeMap {
     fn merge_spans(&self, sp_lhs: Span, sp_rhs: Span) -> Option<Span> {
         self.merge_spans(sp_lhs, sp_rhs)
     }
+    fn call_span_if_macro(&self, sp: Span) -> Span {
+        if self.span_to_filename(sp.clone()).contains("macros>") {
+            let v = sp.macro_backtrace();
+            if let Some(use_site) = v.last() {
+                return use_site.call_site;
+            }
+        }
+        sp
+    }
+    fn ensure_filemap_source_present(&self, file_map: Rc<FileMap>) -> bool {
+        file_map.add_external_src(
+            || self.file_loader.read_file(Path::new(&file_map.name)).ok()
+        )
+    }
 }
 
 #[derive(Clone)]
@@ -579,7 +575,7 @@ impl FilePathMapping {
 
     pub fn new(mapping: Vec<(String, String)>) -> FilePathMapping {
         FilePathMapping {
-            mapping: mapping
+            mapping,
         }
     }
 
@@ -608,6 +604,7 @@ impl FilePathMapping {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::borrow::Cow;
     use std::rc::Rc;
 
     #[test]
@@ -617,12 +614,12 @@ mod tests {
                                 "first line.\nsecond line".to_string());
         fm.next_line(BytePos(0));
         // Test we can get lines with partial line info.
-        assert_eq!(fm.get_line(0), Some("first line."));
+        assert_eq!(fm.get_line(0), Some(Cow::from("first line.")));
         // TESTING BROKEN BEHAVIOR: line break declared before actual line break.
         fm.next_line(BytePos(10));
-        assert_eq!(fm.get_line(1), Some("."));
+        assert_eq!(fm.get_line(1), Some(Cow::from(".")));
         fm.next_line(BytePos(12));
-        assert_eq!(fm.get_line(2), Some("second line"));
+        assert_eq!(fm.get_line(2), Some(Cow::from("second line")));
     }
 
     #[test]
@@ -749,7 +746,7 @@ mod tests {
     fn t7() {
         // Test span_to_lines for a span ending at the end of filemap
         let cm = init_code_map();
-        let span = Span {lo: BytePos(12), hi: BytePos(23), ctxt: NO_EXPANSION};
+        let span = Span::new(BytePos(12), BytePos(23), NO_EXPANSION);
         let file_lines = cm.span_to_lines(span).unwrap();
 
         assert_eq!(file_lines.file.name, "blork.rs");
@@ -758,17 +755,17 @@ mod tests {
     }
 
     /// Given a string like " ~~~~~~~~~~~~ ", produces a span
-    /// coverting that range. The idea is that the string has the same
+    /// converting that range. The idea is that the string has the same
     /// length as the input, and we uncover the byte positions.  Note
     /// that this can span lines and so on.
     fn span_from_selection(input: &str, selection: &str) -> Span {
         assert_eq!(input.len(), selection.len());
         let left_index = selection.find('~').unwrap() as u32;
         let right_index = selection.rfind('~').map(|x|x as u32).unwrap_or(left_index);
-        Span { lo: BytePos(left_index), hi: BytePos(right_index + 1), ctxt: NO_EXPANSION }
+        Span::new(BytePos(left_index), BytePos(right_index + 1), NO_EXPANSION)
     }
 
-    /// Test span_to_snippet and span_to_lines for a span coverting 3
+    /// Test span_to_snippet and span_to_lines for a span converting 3
     /// lines in the middle of a file.
     #[test]
     fn span_to_snippet_and_lines_spanning_multiple_lines() {
@@ -795,7 +792,7 @@ mod tests {
     fn t8() {
         // Test span_to_snippet for a span ending at the end of filemap
         let cm = init_code_map();
-        let span = Span {lo: BytePos(12), hi: BytePos(23), ctxt: NO_EXPANSION};
+        let span = Span::new(BytePos(12), BytePos(23), NO_EXPANSION);
         let snippet = cm.span_to_snippet(span);
 
         assert_eq!(snippet, Ok("second line".to_string()));
@@ -805,7 +802,7 @@ mod tests {
     fn t9() {
         // Test span_to_str for a span ending at the end of filemap
         let cm = init_code_map();
-        let span = Span {lo: BytePos(12), hi: BytePos(23), ctxt: NO_EXPANSION};
+        let span = Span::new(BytePos(12), BytePos(23), NO_EXPANSION);
         let sstr =  cm.span_to_string(span);
 
         assert_eq!(sstr, "blork.rs:2:1: 2:12");
@@ -856,11 +853,11 @@ mod tests {
                 let lo = hi + offset;
                 hi = lo + substring.len();
                 if i == n {
-                    let span = Span {
-                        lo: BytePos(lo as u32 + file.start_pos.0),
-                        hi: BytePos(hi as u32 + file.start_pos.0),
-                        ctxt: NO_EXPANSION,
-                    };
+                    let span = Span::new(
+                        BytePos(lo as u32 + file.start_pos.0),
+                        BytePos(hi as u32 + file.start_pos.0),
+                        NO_EXPANSION,
+                    );
                     assert_eq!(&self.span_to_snippet(span).unwrap()[..],
                             substring);
                     return span;

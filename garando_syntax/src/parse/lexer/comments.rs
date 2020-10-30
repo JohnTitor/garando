@@ -192,7 +192,7 @@ fn read_line_comments(rdr: &mut StringReader,
     if !lines.is_empty() {
         comments.push(Comment {
             style: if code_to_the_left { Trailing } else { Isolated },
-            lines: lines,
+            lines,
             pos: p,
         });
     }
@@ -306,8 +306,8 @@ fn read_block_comment(rdr: &mut StringReader,
     }
     debug!("<<< block comment");
     comments.push(Comment {
-        style: style,
-        lines: lines,
+        style,
+        lines,
         pos: p,
     });
 }
@@ -386,7 +386,7 @@ pub fn gather_comments_and_literals(sess: &ParseSess, path: String, srdr: &mut R
                 debug!("tok lit: {}", s);
                 literals.push(Literal {
                     lit: s.to_string(),
-                    pos: sp.lo,
+                    pos: sp.lo(),
                 });
             })
         } else {

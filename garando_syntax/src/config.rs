@@ -14,7 +14,6 @@ use {fold, attr};
 use ast;
 use codemap::Spanned;
 use parse::{token, ParseSess};
-use syntax_pos::Span;
 
 use ptr::P;
 use util::small_vector::SmallVector;
@@ -32,8 +31,8 @@ pub fn features(mut krate: ast::Crate, sess: &ParseSess, should_test: bool)
     let features;
     {
         let mut strip_unconfigured = StripUnconfigured {
-            should_test: should_test,
-            sess: sess,
+            should_test,
+            sess,
             features: None,
         };
 
@@ -89,10 +88,10 @@ impl<'a> StripUnconfigured<'a> {
             parser.expect(&token::OpenDelim(token::Paren))?;
             let cfg = parser.parse_meta_item()?;
             parser.expect(&token::Comma)?;
-            let lo = parser.span.lo;
+            let lo = parser.span.lo();
             let (path, tokens) = parser.parse_path_and_tokens()?;
             parser.expect(&token::CloseDelim(token::Paren))?;
-            Ok((cfg, path, tokens, Span { lo: lo, ..parser.prev_span }))
+            Ok((cfg, path, tokens, parser.prev_span.with_lo(lo)))
         }) {
             Ok(result) => result,
             Err(mut e) => {
@@ -105,10 +104,10 @@ impl<'a> StripUnconfigured<'a> {
             self.process_cfg_attr(ast::Attribute {
                 id: attr::mk_attr_id(),
                 style: attr.style,
-                path: path,
-                tokens: tokens,
+                path,
+                tokens,
                 is_sugared_doc: false,
-                span: span,
+                span,
             })
         } else {
             None
@@ -223,7 +222,6 @@ impl<'a> StripUnconfigured<'a> {
             ast::ExprKind::Struct(path, fields, base) => {
                 let fields = fields.into_iter()
                     .filter_map(|field| {
-                        self.visit_struct_field_attrs(field.attrs());
                         self.configure(field)
                     })
                     .collect();
@@ -256,17 +254,6 @@ impl<'a> StripUnconfigured<'a> {
     }
 
     pub fn configure_struct_expr_field(&mut self, field: ast::Field) -> Option<ast::Field> {
-        if !self.features.map(|features| features.struct_field_attributes).unwrap_or(true) {
-            if !field.attrs.is_empty() {
-                let mut err = feature_err(self.sess,
-                                          "struct_field_attributes",
-                                          field.span,
-                                          GateIssue::Language,
-                                          "attributes on struct literal fields are unstable");
-                err.emit();
-            }
-        }
-
         self.configure(field)
     }
 
@@ -275,7 +262,6 @@ impl<'a> StripUnconfigured<'a> {
             if let ast::PatKind::Struct(path, fields, etc) = pattern.node {
                 let fields = fields.into_iter()
                     .filter_map(|field| {
-                        self.visit_struct_field_attrs(field.attrs());
                         self.configure(field)
                     })
                     .collect();
@@ -283,21 +269,6 @@ impl<'a> StripUnconfigured<'a> {
             }
             pattern
         })
-    }
-
-    fn visit_struct_field_attrs(&mut self, attrs: &[ast::Attribute]) {
-        // flag the offending attributes
-        for attr in attrs.iter() {
-            if !self.features.map(|features| features.struct_field_attributes).unwrap_or(true) {
-                let mut err = feature_err(
-                    self.sess,
-                    "struct_field_attributes",
-                    attr.span,
-                    GateIssue::Language,
-                    "attributes on struct pattern or literal fields are unstable");
-                err.emit();
-            }
-        }
     }
 }
 

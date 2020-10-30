@@ -141,7 +141,7 @@ pub struct Annotation {
 }
 
 impl Annotation {
-    /// Wether this annotation is a vertical line placeholder.
+    /// Whether this annotation is a vertical line placeholder.
     pub fn is_line(&self) -> bool {
         if let AnnotationType::MultilineLine(_) = self.annotation_type {
             true
@@ -206,7 +206,6 @@ pub struct StyledString {
 #[derive(Copy, Clone, Debug, PartialEq, RustcEncodable, RustcDecodable)]
 pub enum Style {
     HeaderMsg,
-    FileNameStyle,
     LineAndColumn,
     LineNumber,
     Quotation,
@@ -214,10 +213,7 @@ pub enum Style {
     UnderlineSecondary,
     LabelPrimary,
     LabelSecondary,
-    OldSchoolNoteText,
-    OldSchoolNote,
     NoStyle,
-    ErrorCode,
     Level(Level),
     Highlight,
 }

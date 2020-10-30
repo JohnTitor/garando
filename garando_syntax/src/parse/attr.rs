@@ -141,17 +141,17 @@ impl<'a> Parser<'a> {
 
         Ok(ast::Attribute {
             id: attr::mk_attr_id(),
-            style: style,
-            path: path,
-            tokens: tokens,
+            style,
+            path,
+            tokens,
             is_sugared_doc: false,
-            span: span,
+            span,
         })
     }
 
     pub fn parse_path_and_tokens(&mut self) -> PResult<'a, (ast::Path, TokenStream)> {
         let meta = match self.token {
-            token::Interpolated(ref nt) => match **nt {
+            token::Interpolated(ref nt) => match nt.0 {
                 Nonterminal::NtMeta(ref meta) => Some(meta.clone()),
                 _ => None,
             },
@@ -223,7 +223,7 @@ impl<'a> Parser<'a> {
     /// meta_item_inner : (meta_item | UNSUFFIXED_LIT) (',' meta_item_inner)? ;
     pub fn parse_meta_item(&mut self) -> PResult<'a, ast::MetaItem> {
         let nt_meta = match self.token {
-            token::Interpolated(ref nt) => match **nt {
+            token::Interpolated(ref nt) => match nt.0 {
                 token::NtMeta(ref e) => Some(e.clone()),
                 _ => None,
             },
@@ -244,10 +244,9 @@ impl<'a> Parser<'a> {
     pub fn parse_meta_item_kind(&mut self) -> PResult<'a, ast::MetaItemKind> {
         Ok(if self.eat(&token::Eq) {
             ast::MetaItemKind::NameValue(self.parse_unsuffixed_lit()?)
-        } else if self.token == token::OpenDelim(token::Paren) {
+        } else if self.eat(&token::OpenDelim(token::Paren)) {
             ast::MetaItemKind::List(self.parse_meta_seq()?)
         } else {
-            self.eat(&token::OpenDelim(token::Paren));
             ast::MetaItemKind::Word
         })
     }
@@ -277,9 +276,8 @@ impl<'a> Parser<'a> {
 
     /// matches meta_seq = ( COMMASEP(meta_item_inner) )
     fn parse_meta_seq(&mut self) -> PResult<'a, Vec<ast::NestedMetaItem>> {
-        self.parse_unspanned_seq(&token::OpenDelim(token::Paren),
-                                 &token::CloseDelim(token::Paren),
-                                 SeqSep::trailing_allowed(token::Comma),
-                                 |p: &mut Parser<'a>| p.parse_meta_item_inner())
+        self.parse_seq_to_end(&token::CloseDelim(token::Paren),
+                              SeqSep::trailing_allowed(token::Comma),
+                              |p: &mut Parser<'a>| p.parse_meta_item_inner())
     }
 }

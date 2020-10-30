@@ -80,11 +80,7 @@ fn make_span(file_text: &str, start: &Position, end: &Position) -> Span {
     let start = make_pos(file_text, start);
     let end = make_pos(file_text, end) + end.string.len(); // just after matching thing ends
     assert!(start <= end);
-    Span {
-        lo: BytePos(start as u32),
-        hi: BytePos(end as u32),
-        ctxt: NO_EXPANSION,
-    }
+    Span::new(BytePos(start as u32), BytePos(end as u32), NO_EXPANSION)
 }
 
 fn make_pos(file_text: &str, pos: &Position) -> usize {
@@ -731,6 +727,49 @@ error: foo
   |   ^^^^-------^^
   |       |
   |       `b` is a good letter
+
+"#);
+}
+
+#[test]
+fn multiple_labels_secondary_without_message_3() {
+    test_harness(r#"
+fn foo() {
+  a  bc  d
+}
+"#,
+    vec![
+        SpanLabel {
+            start: Position {
+                string: "a",
+                count: 1,
+            },
+            end: Position {
+                string: "b",
+                count: 1,
+            },
+            label: "`a` is a good letter",
+        },
+        SpanLabel {
+            start: Position {
+                string: "c",
+                count: 1,
+            },
+            end: Position {
+                string: "d",
+                count: 1,
+            },
+            label: "",
+        },
+    ],
+    r#"
+error: foo
+ --> test.rs:3:3
+  |
+3 |   a  bc  d
+  |   ^^^^----
+  |   |
+  |   `a` is a good letter
 
 "#);
 }

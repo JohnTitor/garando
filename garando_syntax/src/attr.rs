@@ -435,10 +435,10 @@ pub fn mk_attr_inner(span: Span, id: AttrId, item: MetaItem) -> Attribute {
     mk_spanned_attr_inner(span, id, item)
 }
 
-/// Returns an innter attribute with the given value and span.
+/// Returns an inner attribute with the given value and span.
 pub fn mk_spanned_attr_inner(sp: Span, id: AttrId, item: MetaItem) -> Attribute {
     Attribute {
-        id: id,
+        id,
         style: ast::AttrStyle::Inner,
         path: ast::Path::from_ident(item.span, ast::Ident::with_empty_ctxt(item.name)),
         tokens: item.node.tokens(item.span),
@@ -456,7 +456,7 @@ pub fn mk_attr_outer(span: Span, id: AttrId, item: MetaItem) -> Attribute {
 /// Returns an outer attribute with the given value and span.
 pub fn mk_spanned_attr_outer(sp: Span, id: AttrId, item: MetaItem) -> Attribute {
     Attribute {
-        id: id,
+        id,
         style: ast::AttrStyle::Outer,
         path: ast::Path::from_ident(item.span, ast::Ident::with_empty_ctxt(item.name)),
         tokens: item.node.tokens(item.span),
@@ -469,12 +469,12 @@ pub fn mk_sugared_doc_attr(id: AttrId, text: Symbol, span: Span) -> Attribute {
     let style = doc_comment_style(&text.as_str());
     let lit = respan(span, LitKind::Str(text, ast::StrStyle::Cooked));
     Attribute {
-        id: id,
-        style: style,
+        id,
+        style,
         path: ast::Path::from_ident(span, ast::Ident::from_str("doc")),
         tokens: MetaItemKind::NameValue(lit).tokens(span),
         is_sugared_doc: true,
-        span: span,
+        span,
     }
 }
 
@@ -488,6 +488,10 @@ pub fn contains_name(attrs: &[Attribute], name: &str) -> bool {
     attrs.iter().any(|item| {
         item.check_name(name)
     })
+}
+
+pub fn find_by_name<'a>(attrs: &'a [Attribute], name: &str) -> Option<&'a Attribute> {
+    attrs.iter().find(|attr| attr.check_name(name))
 }
 
 pub fn first_attr_value_str_by_name(attrs: &[Attribute], name: &str) -> Option<Symbol> {
@@ -581,6 +585,20 @@ pub fn requests_inline(attrs: &[Attribute]) -> bool {
 
 /// Tests if a cfg-pattern matches the cfg set
 pub fn cfg_matches(cfg: &ast::MetaItem, sess: &ParseSess, features: Option<&Features>) -> bool {
+    eval_condition(cfg, sess, &mut |cfg| {
+        if let (Some(feats), Some(gated_cfg)) = (features, GatedCfg::gate(cfg)) {
+            gated_cfg.check_and_emit(sess, feats);
+        }
+        sess.config.contains(&(cfg.name(), cfg.value_str()))
+    })
+}
+
+/// Evaluate a cfg-like condition (with `any` and `all`), using `eval` to
+/// evaluate individual items.
+pub fn eval_condition<F>(cfg: &ast::MetaItem, sess: &ParseSess, eval: &mut F)
+                         -> bool
+    where F: FnMut(&ast::MetaItem) -> bool
+{
     match cfg.node {
         ast::MetaItemKind::List(ref mis) => {
             for mi in mis.iter() {
@@ -594,10 +612,10 @@ pub fn cfg_matches(cfg: &ast::MetaItem, sess: &ParseSess, features: Option<&Feat
             // that they won't fail with the loop above.
             match &*cfg.name.as_str() {
                 "any" => mis.iter().any(|mi| {
-                    cfg_matches(mi.meta_item().unwrap(), sess, features)
+                    eval_condition(mi.meta_item().unwrap(), sess, eval)
                 }),
                 "all" => mis.iter().all(|mi| {
-                    cfg_matches(mi.meta_item().unwrap(), sess, features)
+                    eval_condition(mi.meta_item().unwrap(), sess, eval)
                 }),
                 "not" => {
                     if mis.len() != 1 {
@@ -605,7 +623,7 @@ pub fn cfg_matches(cfg: &ast::MetaItem, sess: &ParseSess, features: Option<&Feat
                         return false;
                     }
 
-                    !cfg_matches(mis[0].meta_item().unwrap(), sess, features)
+                    !eval_condition(mis[0].meta_item().unwrap(), sess, eval)
                 },
                 p => {
                     span_err!(sess.span_diagnostic, cfg.span, E0537, "invalid predicate `{}`", p);
@@ -614,10 +632,7 @@ pub fn cfg_matches(cfg: &ast::MetaItem, sess: &ParseSess, features: Option<&Feat
             }
         },
         ast::MetaItemKind::Word | ast::MetaItemKind::NameValue(..) => {
-            if let (Some(feats), Some(gated_cfg)) = (features, GatedCfg::gate(cfg)) {
-                gated_cfg.check_and_emit(sess, feats);
-            }
-            sess.config.contains(&(cfg.name(), cfg.value_str()))
+            eval(cfg)
         }
     }
 }
@@ -718,8 +733,8 @@ fn find_stability_generic<'a, I>(diagnostic: &Handler,
                     match (since, reason) {
                         (Some(since), Some(reason)) => {
                             rustc_depr = Some(RustcDeprecation {
-                                since: since,
-                                reason: reason,
+                                since,
+                                reason,
                             })
                         }
                         (None, _) => {
@@ -763,7 +778,7 @@ fn find_stability_generic<'a, I>(diagnostic: &Handler,
                         (Some(feature), reason, Some(issue)) => {
                             stab = Some(Stability {
                                 level: Unstable {
-                                    reason: reason,
+                                    reason,
                                     issue: {
                                         if let Ok(issue) = issue.as_str().parse() {
                                             issue
@@ -774,7 +789,7 @@ fn find_stability_generic<'a, I>(diagnostic: &Handler,
                                         }
                                     }
                                 },
-                                feature: feature,
+                                feature,
                                 rustc_depr: None,
                             })
                         }
@@ -817,9 +832,9 @@ fn find_stability_generic<'a, I>(diagnostic: &Handler,
                         (Some(feature), Some(since)) => {
                             stab = Some(Stability {
                                 level: Stable {
-                                    since: since,
+                                    since,
                                 },
-                                feature: feature,
+                                feature,
                                 rustc_depr: None,
                             })
                         }
@@ -974,11 +989,11 @@ pub fn find_repr_attrs(diagnostic: &Handler, attr: &Attribute) -> Vec<ReprAttr> 
                         let mut align_error = None;
                         if let ast::LitKind::Int(align, ast::LitIntType::Unsuffixed) = value.node {
                             if align.is_power_of_two() {
-                                // rustc::ty::layout::Align restricts align to <= 32768
-                                if align <= 32768 {
-                                    acc.push(ReprAlign(align as u16));
+                                // rustc::ty::layout::Align restricts align to <= 2147483647
+                                if align <= 2147483647 {
+                                    acc.push(ReprAlign(align as u32));
                                 } else {
-                                    align_error = Some("larger than 32768");
+                                    align_error = Some("larger than 2147483647");
                                 }
                             } else {
                                 align_error = Some("not a power of two");
@@ -1027,7 +1042,7 @@ pub enum ReprAttr {
     ReprExtern,
     ReprPacked,
     ReprSimd,
-    ReprAlign(u16),
+    ReprAlign(u32),
 }
 
 #[derive(Eq, Hash, PartialEq, Debug, RustcEncodable, RustcDecodable, Copy, Clone)]
@@ -1055,35 +1070,30 @@ impl MetaItem {
     fn from_tokens<I>(tokens: &mut iter::Peekable<I>) -> Option<MetaItem>
         where I: Iterator<Item = TokenTree>,
     {
-        let (mut span, name) = match tokens.next() {
+        let (span, name) = match tokens.next() {
             Some(TokenTree::Token(span, Token::Ident(ident))) => (span, ident.name),
-            Some(TokenTree::Token(_, Token::Interpolated(ref nt))) => match **nt {
+            Some(TokenTree::Token(_, Token::Interpolated(ref nt))) => match nt.0 {
                 token::Nonterminal::NtIdent(ident) => (ident.span, ident.node.name),
                 token::Nonterminal::NtMeta(ref meta) => return Some(meta.clone()),
                 _ => return None,
             },
             _ => return None,
         };
+        let list_closing_paren_pos = tokens.peek().map(|tt| tt.span().hi());
         let node = match MetaItemKind::from_tokens(tokens) {
             Some(node) => node,
             _ => return None,
         };
-        if let Some(last_span) = node.last_span() {
-            span.hi = last_span.hi;
-        }
-        Some(MetaItem { name: name, span: span, node: node })
+        let hi = match node {
+            MetaItemKind::NameValue(ref lit) => lit.span.hi(),
+            MetaItemKind::List(..) => list_closing_paren_pos.unwrap_or(span.hi()),
+            _ => span.hi(),
+        };
+        Some(MetaItem { name, node, span: span.with_hi(hi) })
     }
 }
 
 impl MetaItemKind {
-    fn last_span(&self) -> Option<Span> {
-        match *self {
-            MetaItemKind::Word => None,
-            MetaItemKind::List(ref list) => list.last().map(NestedMetaItem::span),
-            MetaItemKind::NameValue(ref lit) => Some(lit.span),
-        }
-    }
-
     pub fn tokens(&self, span: Span) -> TokenStream {
         match *self {
             MetaItemKind::Word => TokenStream::empty(),
@@ -1130,7 +1140,7 @@ impl MetaItemKind {
         let mut result = Vec::new();
         while let Some(..) = tokens.peek() {
             match NestedMetaItemKind::from_tokens(&mut tokens) {
-                Some(item) => result.push(Spanned { span: item.span(), node: item }),
+                Some(item) => result.push(respan(item.span(), item)),
                 None => return None,
             }
             match tokens.next() {
@@ -1163,7 +1173,7 @@ impl NestedMetaItemKind {
         if let Some(TokenTree::Token(span, token)) = tokens.peek().cloned() {
             if let Some(node) = LitKind::from_token(token) {
                 tokens.next();
-                return Some(NestedMetaItemKind::Literal(Spanned { node: node, span: span }));
+                return Some(NestedMetaItemKind::Literal(respan(span, node)));
             }
         }
 
@@ -1229,7 +1239,7 @@ impl LitKind {
         match token {
             Token::Ident(ident) if ident.name == "true" => Some(LitKind::Bool(true)),
             Token::Ident(ident) if ident.name == "false" => Some(LitKind::Bool(false)),
-            Token::Interpolated(ref nt) => match **nt {
+            Token::Interpolated(ref nt) => match nt.0 {
                 token::NtExpr(ref v) => match v.node {
                     ExprKind::Lit(ref lit) => Some(lit.node.clone()),
                     _ => None,
@@ -1256,7 +1266,7 @@ pub trait HasAttrs: Sized {
 impl<T: HasAttrs> HasAttrs for Spanned<T> {
     fn attrs(&self) -> &[ast::Attribute] { self.node.attrs() }
     fn map_attrs<F: FnOnce(Vec<ast::Attribute>) -> Vec<ast::Attribute>>(self, f: F) -> Self {
-        Spanned { node: self.node.map_attrs(f), span: self.span }
+        respan(self.span, self.node.map_attrs(f))
     }
 }
 

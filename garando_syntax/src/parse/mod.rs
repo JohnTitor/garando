@@ -69,7 +69,7 @@ impl ParseSess {
             config: HashSet::new(),
             missing_fragment_specifiers: RefCell::new(HashSet::new()),
             included_mod_stack: RefCell::new(vec![]),
-            code_map: code_map
+            code_map,
         }
     }
 
@@ -124,7 +124,7 @@ pub fn parse_expr_from_source_str(name: String, source: String, sess: &ParseSess
 
 /// Parses an item.
 ///
-/// Returns `Ok(Some(item))` when successful, `Ok(None)` when no item was found, and`Err`
+/// Returns `Ok(Some(item))` when successful, `Ok(None)` when no item was found, and `Err`
 /// when a syntax error occurred.
 pub fn parse_item_from_source_str(name: String, source: String, sess: &ParseSess)
                                       -> PResult<Option<P<ast::Item>>> {
@@ -141,9 +141,10 @@ pub fn parse_stmt_from_source_str(name: String, source: String, sess: &ParseSess
     new_parser_from_source_str(sess, name, source).parse_stmt()
 }
 
-pub fn parse_stream_from_source_str(name: String, source: String, sess: &ParseSess)
-                                        -> TokenStream {
-    filemap_to_stream(sess, sess.codemap().new_filemap(name, source))
+pub fn parse_stream_from_source_str(name: String, source: String, sess: &ParseSess,
+                                    override_span: Option<Span>)
+                                    -> TokenStream {
+    filemap_to_stream(sess, sess.codemap().new_filemap(name, source), override_span)
 }
 
 // Create a new parser from a source string
@@ -177,10 +178,10 @@ pub fn new_sub_parser_from_file<'a>(sess: &'a ParseSess,
 /// Given a filemap and config, return a parser
 pub fn filemap_to_parser(sess: & ParseSess, filemap: Rc<FileMap>, ) -> Parser {
     let end_pos = filemap.end_pos;
-    let mut parser = stream_to_parser(sess, filemap_to_stream(sess, filemap));
+    let mut parser = stream_to_parser(sess, filemap_to_stream(sess, filemap, None));
 
     if parser.token == token::Eof && parser.span == syntax_pos::DUMMY_SP {
-        parser.span = Span { lo: end_pos, hi: end_pos, ctxt: NO_EXPANSION };
+        parser.span = Span::new(end_pos, end_pos, NO_EXPANSION);
     }
 
     parser
@@ -212,8 +213,10 @@ fn file_to_filemap(sess: &ParseSess, path: &Path, spanopt: Option<Span>)
 }
 
 /// Given a filemap, produce a sequence of token-trees
-pub fn filemap_to_stream(sess: &ParseSess, filemap: Rc<FileMap>) -> TokenStream {
+pub fn filemap_to_stream(sess: &ParseSess, filemap: Rc<FileMap>, override_span: Option<Span>)
+                         -> TokenStream {
     let mut srdr = lexer::StringReader::new(sess, filemap);
+    srdr.override_span = override_span;
     srdr.real_token();
     panictry!(srdr.parse_all_token_trees())
 }
@@ -227,7 +230,7 @@ pub fn stream_to_parser(sess: &ParseSess, stream: TokenStream) -> Parser {
 /// Rather than just accepting/rejecting a given literal, unescapes it as
 /// well. Can take any slice prefixed by a character escape. Returns the
 /// character and the number of characters consumed.
-pub fn char_lit(lit: &str) -> (char, isize) {
+pub fn char_lit(lit: &str, diag: Option<(Span, &Handler)>) -> (char, isize) {
     use std::char;
 
     // Handle non-escaped chars first.
@@ -255,8 +258,19 @@ pub fn char_lit(lit: &str) -> (char, isize) {
         'u' => {
             assert_eq!(lit.as_bytes()[2], b'{');
             let idx = lit.find('}').unwrap();
-            let v = u32::from_str_radix(&lit[3..idx], 16).unwrap();
-            let c = char::from_u32(v).unwrap();
+            let s = &lit[3..idx].chars().filter(|&c| c != '_').collect::<String>();
+            let v = u32::from_str_radix(&s, 16).unwrap();
+            let c = char::from_u32(v).unwrap_or_else(|| {
+                if let Some((span, diag)) = diag {
+                    let mut diag = diag.struct_span_err(span, "invalid unicode character escape");
+                    if v > 0x10FFFF {
+                        diag.help("unicode escape must be at most 10FFFF").emit();
+                    } else {
+                        diag.help("unicode escape must not be a surrogate").emit();
+                    }
+                }
+                '\u{FFFD}'
+            });
             (c, (idx + 1) as isize)
         }
         _ => panic!("lexer should have rejected a bad character escape {}", lit)
@@ -269,7 +283,7 @@ pub fn escape_default(s: &str) -> String {
 
 /// Parse a string representing a string literal into its final form. Does
 /// unescaping.
-pub fn str_lit(lit: &str) -> String {
+pub fn str_lit(lit: &str, diag: Option<(Span, &Handler)>) -> String {
     debug!("parse_str_lit: given {}", escape_default(lit));
     let mut res = String::with_capacity(lit.len());
 
@@ -310,7 +324,7 @@ pub fn str_lit(lit: &str) -> String {
                     eat(&mut chars);
                 } else {
                     // otherwise, a normal escape
-                    let (c, n) = char_lit(&lit[i..]);
+                    let (c, n) = char_lit(&lit[i..], diag);
                     for _ in 0..n - 1 { // we don't need to move past the first \
                         chars.next();
                     }
@@ -382,7 +396,7 @@ pub fn lit_token(lit: token::Lit, suf: Option<Symbol>, diag: Option<(Span, &Hand
 
     match lit {
        token::Byte(i) => (true, Some(LitKind::Byte(byte_lit(&i.as_str()).0))),
-       token::Char(i) => (true, Some(LitKind::Char(char_lit(&i.as_str()).0))),
+       token::Char(i) => (true, Some(LitKind::Char(char_lit(&i.as_str(), diag).0))),
 
         // There are some valid suffixes for integer and float literals,
         // so all the handling is done internally.
@@ -390,7 +404,7 @@ pub fn lit_token(lit: token::Lit, suf: Option<Symbol>, diag: Option<(Span, &Hand
         token::Float(s) => (false, float_lit(&s.as_str(), suf, diag)),
 
         token::Str_(s) => {
-            let s = Symbol::intern(&str_lit(&s.as_str()));
+            let s = Symbol::intern(&str_lit(&s.as_str(), diag));
             (true, Some(LitKind::Str(s, ast::StrStyle::Cooked)))
         }
         token::StrRaw(s, n) => {
@@ -658,7 +672,7 @@ mod tests {
 
     // produce a syntax_pos::span
     fn sp(a: u32, b: u32) -> Span {
-        Span {lo: BytePos(a), hi: BytePos(b), ctxt: NO_EXPANSION}
+        Span::new(BytePos(a), BytePos(b), NO_EXPANSION)
     }
 
     fn str2seg(s: &str, lo: u32, hi: u32) -> ast::PathSegment {
@@ -684,7 +698,7 @@ mod tests {
                     id: ast::DUMMY_NODE_ID,
                     node: ast::ExprKind::Path(None, ast::Path {
                         span: sp(0, 6),
-                        segments: vec![ast::PathSegment::crate_root(),
+                        segments: vec![ast::PathSegment::crate_root(sp(0, 2)),
                                        str2seg("a", 2, 3),
                                        str2seg("b", 5, 6)]
                     }),
@@ -840,11 +854,18 @@ mod tests {
     // check the contents of the tt manually:
     #[test] fn parse_fundecl () {
         // this test depends on the intern order of "fn" and "i32"
-        assert_eq!(string_to_item("fn a (b : i32) { b; }".to_string()),
+        let item = string_to_item("fn a (b : i32) { b; }".to_string()).map(|m| {
+            m.map(|mut m| {
+                m.tokens = None;
+                m
+            })
+        });
+        assert_eq!(item,
                   Some(
                       P(ast::Item{ident:Ident::from_str("a"),
                             attrs:Vec::new(),
                             id: ast::DUMMY_NODE_ID,
+                            tokens: None,
                             node: ast::ItemKind::Fn(P(ast::FnDecl {
                                 inputs: vec![ast::Arg{
                                     ty: P(ast::Ty{id: ast::DUMMY_NODE_ID,
@@ -857,13 +878,14 @@ mod tests {
                                     pat: P(ast::Pat {
                                         id: ast::DUMMY_NODE_ID,
                                         node: PatKind::Ident(
-                                            ast::BindingMode::ByValue(ast::Mutability::Immutable),
-                                                Spanned{
-                                                    span: sp(6,7),
-                                                    node: Ident::from_str("b")},
-                                                None
-                                                    ),
-                                            span: sp(6,7)
+                                            ast::BindingMode::ByValue(
+                                                ast::Mutability::Immutable),
+                                            Spanned{
+                                                span: sp(6,7),
+                                                node: Ident::from_str("b")},
+                                            None
+                                        ),
+                                        span: sp(6,7)
                                     }),
                                         id: ast::DUMMY_NODE_ID
                                     }],
@@ -882,6 +904,7 @@ mod tests {
                                         where_clause: ast::WhereClause {
                                             id: ast::DUMMY_NODE_ID,
                                             predicates: Vec::new(),
+                                            span: syntax_pos::DUMMY_SP,
                                         },
                                         span: syntax_pos::DUMMY_SP,
                                     },
@@ -964,7 +987,7 @@ mod tests {
 
         for &src in &srcs {
             let spans = get_spans_of_pat_idents(src);
-            let Span{ lo, hi, .. } = spans[0];
+            let (lo, hi) = (spans[0].lo(), spans[0].hi());
             assert!("self" == &src[lo.to_usize()..hi.to_usize()],
                     "\"{}\" != \"self\". src=\"{}\"",
                     &src[lo.to_usize()..hi.to_usize()], src)
