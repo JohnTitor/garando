@@ -46,10 +46,6 @@ pub mod diagnostics {
     pub mod plugin;
 }
 
-// NB: This module needs to be declared first so diagnostics are
-// registered before they are used.
-pub mod diagnostic_list;
-
 pub mod util {
     pub mod lev_distance;
     pub mod move_map;
