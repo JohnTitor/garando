@@ -81,7 +81,7 @@ impl<'a> StringReader<'a> {
             Ok(tok) => tok,
             Err(_) => {
                 self.emit_fatal_errors();
-                panic!(FatalError);
+                panic!("{}", FatalError);
             }
         }
     }
@@ -183,7 +183,7 @@ impl<'a> StringReader<'a> {
         let mut sr = StringReader::new_raw(sess, filemap);
         if sr.advance_token().is_err() {
             sr.emit_fatal_errors();
-            panic!(FatalError);
+            panic!("{}", FatalError);
         }
         sr
     }
@@ -208,7 +208,7 @@ impl<'a> StringReader<'a> {
 
         if sr.advance_token().is_err() {
             sr.emit_fatal_errors();
-            panic!(FatalError);
+            panic!("{}", FatalError);
         }
         sr
     }
@@ -639,7 +639,7 @@ impl<'a> StringReader<'a> {
                     "unterminated block comment"
                 };
                 let last_bpos = self.pos;
-                panic!(self.fatal_span_(start_bpos, last_bpos, msg));
+                panic!("{}", self.fatal_span_(start_bpos, last_bpos, msg));
             }
             let n = self.ch.unwrap();
             match n {
@@ -801,7 +801,7 @@ impl<'a> StringReader<'a> {
         for _ in 0..n_digits {
             if self.is_eof() {
                 let last_bpos = self.pos;
-                panic!(self.fatal_span_(
+                panic!("{}", self.fatal_span_(
                     start_bpos,
                     last_bpos,
                     "unterminated numeric character escape"
@@ -1004,7 +1004,7 @@ impl<'a> StringReader<'a> {
             let c = match self.ch {
                 Some(c) => c,
                 None => {
-                    panic!(self.fatal_span_(
+                    panic!("{}", self.fatal_span_(
                         start_bpos,
                         self.pos,
                         "unterminated unicode escape (found EOF)"
@@ -1014,7 +1014,7 @@ impl<'a> StringReader<'a> {
             accum_int *= 16;
             accum_int += c.to_digit(16).unwrap_or_else(|| {
                 if c == delim {
-                    panic!(self.fatal_span_(
+                    panic!("{}", self.fatal_span_(
                         self.pos,
                         self.next_pos,
                         "unterminated unicode escape (needed a `}`)"
@@ -1290,7 +1290,7 @@ impl<'a> StringReader<'a> {
                     // lifetimes shouldn't end with a single quote
                     // if we find one, then this is an invalid character literal
                     if self.ch_is('\'') {
-                        panic!(self.fatal_span_verbose(
+                        panic!("{}", self.fatal_span_verbose(
                             start_with_quote,
                             self.next_pos,
                             String::from("character literal may only contain one codepoint")
@@ -1325,7 +1325,7 @@ impl<'a> StringReader<'a> {
                 );
 
                 if !self.ch_is('\'') {
-                    panic!(self.fatal_span_verbose(
+                    panic!("{}", self.fatal_span_verbose(
                         start_with_quote,
                         self.pos,
                         String::from("character literal may only contain one codepoint")
@@ -1359,7 +1359,7 @@ impl<'a> StringReader<'a> {
                 while !self.ch_is('"') {
                     if self.is_eof() {
                         let last_bpos = self.pos;
-                        panic!(self.fatal_span_(
+                        panic!("{}", self.fatal_span_(
                             start_bpos,
                             last_bpos,
                             "unterminated double quote string"
@@ -1395,11 +1395,11 @@ impl<'a> StringReader<'a> {
 
                 if self.is_eof() {
                     let last_bpos = self.pos;
-                    panic!(self.fatal_span_(start_bpos, last_bpos, "unterminated raw string"));
+                    panic!("{}", self.fatal_span_(start_bpos, last_bpos, "unterminated raw string"));
                 } else if !self.ch_is('"') {
                     let last_bpos = self.pos;
                     let curr_char = self.ch.unwrap();
-                    panic!(self.fatal_span_char(
+                    panic!("{}", self.fatal_span_char(
                         start_bpos,
                         last_bpos,
                         "found invalid character; only `#` is allowed \
@@ -1414,7 +1414,7 @@ impl<'a> StringReader<'a> {
                 'outer: loop {
                     if self.is_eof() {
                         let last_bpos = self.pos;
-                        panic!(self.fatal_span_(start_bpos, last_bpos, "unterminated raw string"));
+                        panic!("{}", self.fatal_span_(start_bpos, last_bpos, "unterminated raw string"));
                     }
                     // if self.ch_is('"') {
                     // content_end_bpos = self.pos;
@@ -1558,7 +1558,7 @@ impl<'a> StringReader<'a> {
             // character before position `start` are an
             // ascii single quote and ascii 'b'.
             let pos = self.pos;
-            panic!(self.fatal_span_verbose(
+            panic!("{}", self.fatal_span_verbose(
                 start - BytePos(2),
                 pos,
                 "unterminated byte constant".to_string()
@@ -1586,7 +1586,7 @@ impl<'a> StringReader<'a> {
         while !self.ch_is('"') {
             if self.is_eof() {
                 let pos = self.pos;
-                panic!(self.fatal_span_(start, pos, "unterminated double quote byte string"));
+                panic!("{}", self.fatal_span_(start, pos, "unterminated double quote byte string"));
             }
 
             let ch_start = self.pos;
@@ -1617,11 +1617,11 @@ impl<'a> StringReader<'a> {
 
         if self.is_eof() {
             let pos = self.pos;
-            panic!(self.fatal_span_(start_bpos, pos, "unterminated raw string"));
+            panic!("{}", self.fatal_span_(start_bpos, pos, "unterminated raw string"));
         } else if !self.ch_is('"') {
             let pos = self.pos;
             let ch = self.ch.unwrap();
-            panic!(self.fatal_span_char(
+            panic!("{}", self.fatal_span_char(
                 start_bpos,
                 pos,
                 "found invalid character; only `#` is allowed in raw \
@@ -1636,7 +1636,7 @@ impl<'a> StringReader<'a> {
             match self.ch {
                 None => {
                     let pos = self.pos;
-                    panic!(self.fatal_span_(start_bpos, pos, "unterminated raw string"))
+                    panic!("{}", self.fatal_span_(start_bpos, pos, "unterminated raw string"))
                 }
                 Some('"') => {
                     content_end_bpos = self.pos;

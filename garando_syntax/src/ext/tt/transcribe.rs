@@ -136,7 +136,7 @@ pub fn transcribe(
                     &repeats,
                 ) {
                     LockstepIterSize::Unconstrained => {
-                        panic!(sp_diag.span_fatal(
+                        panic!("{}", sp_diag.span_fatal(
                             sp, /* blame macro writer */
                             "attempted to repeat an expression \
                              containing no syntax \
@@ -145,13 +145,13 @@ pub fn transcribe(
                     }
                     LockstepIterSize::Contradiction(ref msg) => {
                         // FIXME #2887 blame macro invoker instead
-                        panic!(sp_diag.span_fatal(sp, &msg[..]));
+                        panic!("{}", sp_diag.span_fatal(sp, &msg[..]));
                     }
                     LockstepIterSize::Constraint(len, _) => {
                         if len == 0 {
                             if seq.op == quoted::KleeneOp::OneOrMore {
                                 // FIXME #2887 blame invoker
-                                panic!(sp_diag.span_fatal(sp, "this must repeat at least once"));
+                                panic!("{}", sp_diag.span_fatal(sp, "this must repeat at least once"));
                             }
                         } else {
                             repeats.push((0, len));
@@ -179,7 +179,7 @@ pub fn transcribe(
                                 }
                             }
                         } else {
-                            panic!(sp_diag.span_fatal(
+                            panic!("{}", sp_diag.span_fatal(
                                 sp, /* blame the macro writer */
                                 &format!("variable '{}' is still repeating at this depth", ident)
                             ));

@@ -128,10 +128,10 @@ impl<T> SmallVector<T> {
                 if v.len() == 1 {
                     v.into_iter().next().unwrap()
                 } else {
-                    panic!(err)
+                    panic!("{}", err)
                 }
             }
-            _ => panic!(err),
+            _ => panic!("{}", err),
         }
     }
 

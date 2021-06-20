@@ -1879,7 +1879,7 @@ impl MutexFeatureChecker {
                 .span_note(ca_span, "`#![feature(custom_attribute)]` declared here")
                 .emit();
 
-            panic!(FatalError);
+            panic!("{}", FatalError);
         }
     }
 }
