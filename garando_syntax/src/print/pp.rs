@@ -644,14 +644,6 @@ pub fn word(p: &mut Printer, wrd: &str) -> io::Result<()> {
     p.pretty_print(Token::String(wrd.to_string(), wrd.len() as isize))
 }
 
-pub fn huge_word(p: &mut Printer, wrd: &str) -> io::Result<()> {
-    p.pretty_print(Token::String(wrd.to_string(), SIZE_INFINITY))
-}
-
-pub fn zero_word(p: &mut Printer, wrd: &str) -> io::Result<()> {
-    p.pretty_print(Token::String(wrd.to_string(), 0))
-}
-
 pub fn spaces(p: &mut Printer, n: usize) -> io::Result<()> {
     break_offset(p, n, 0)
 }
@@ -673,8 +665,4 @@ pub fn hardbreak_tok_offset(off: isize) -> Token {
         offset: off,
         blank_space: SIZE_INFINITY,
     })
-}
-
-pub fn hardbreak_tok() -> Token {
-    hardbreak_tok_offset(0)
 }

@@ -47,7 +47,6 @@ pub mod diagnostics {
 }
 
 pub mod util {
-    pub mod lev_distance;
     pub mod move_map;
     pub mod parser;
     #[cfg(test)]
@@ -60,8 +59,6 @@ pub mod util {
     mod rc_slice;
     pub use self::rc_slice::RcSlice;
 }
-
-pub mod json;
 
 pub mod syntax {
     pub use crate::ast;
@@ -80,11 +77,9 @@ pub mod feature_gate;
 pub mod fold;
 pub mod parse;
 pub mod ptr;
-pub mod show_span;
 pub mod std_inject;
 pub mod str;
 pub use crate::syntax_pos::symbol;
-pub mod test;
 pub mod tokenstream;
 pub mod visit;
 
@@ -110,8 +105,3 @@ pub mod ext {
         pub mod transcribe;
     }
 }
-
-#[cfg(test)]
-mod test_snippet;
-
-// __build_diagnostic_array! { libsyntax, DIAGNOSTICS }

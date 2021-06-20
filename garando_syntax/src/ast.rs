@@ -12,7 +12,6 @@ use crate::codemap::{respan, Spanned};
 use crate::ext::hygiene::{Mark, SyntaxContext};
 use crate::print::pprust;
 use crate::ptr::P;
-use crate::rustc_data_structures::indexed_vec;
 use crate::symbol::{keywords, Symbol};
 use crate::syntax_pos::{Span, DUMMY_SP};
 use crate::tokenstream::{ThinTokenStream, TokenStream};
@@ -223,16 +222,6 @@ impl NodeId {
 impl fmt::Display for NodeId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(&self.0, f)
-    }
-}
-
-impl indexed_vec::Idx for NodeId {
-    fn new(idx: usize) -> Self {
-        NodeId::new(idx)
-    }
-
-    fn index(self) -> usize {
-        self.as_usize()
     }
 }
 
@@ -627,10 +616,6 @@ impl BinOpKind {
             And | Or | Add | Sub | Mul | Div | Rem | BitXor | BitAnd | BitOr | Shl | Shr => false,
         }
     }
-    /// Returns `true` if the binary operator takes its arguments by value
-    pub fn is_by_value(&self) -> bool {
-        !self.is_comparison()
-    }
 }
 
 pub type BinOp = Spanned<BinOpKind>;
@@ -646,14 +631,6 @@ pub enum UnOp {
 }
 
 impl UnOp {
-    /// Returns `true` if the unary operator takes its argument by value
-    pub fn is_by_value(u: UnOp) -> bool {
-        match u {
-            UnOp::Neg | UnOp::Not => true,
-            _ => false,
-        }
-    }
-
     pub fn to_string(op: UnOp) -> &'static str {
         match op {
             UnOp::Deref => "*",
@@ -1068,11 +1045,6 @@ impl LitKind {
             | LitKind::Float(..) => false,
         }
     }
-
-    /// Returns true if this literal has a suffix.
-    pub fn is_suffixed(&self) -> bool {
-        !self.is_unsuffixed()
-    }
 }
 
 // NB: If you change this, you'll probably want to change the corresponding
@@ -1174,17 +1146,6 @@ impl IntTy {
         // sign.
         format!("{}{}", val as u128, self.ty_to_string())
     }
-
-    pub fn bit_width(&self) -> Option<usize> {
-        Some(match *self {
-            IntTy::Is => return None,
-            IntTy::I8 => 8,
-            IntTy::I16 => 16,
-            IntTy::I32 => 32,
-            IntTy::I64 => 64,
-            IntTy::I128 => 128,
-        })
-    }
 }
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Copy)]
@@ -1211,17 +1172,6 @@ impl UintTy {
 
     pub fn val_to_string(&self, val: u128) -> String {
         format!("{}{}", val, self.ty_to_string())
-    }
-
-    pub fn bit_width(&self) -> Option<usize> {
-        Some(match *self {
-            UintTy::Us => return None,
-            UintTy::U8 => 8,
-            UintTy::U16 => 16,
-            UintTy::U32 => 32,
-            UintTy::U64 => 64,
-            UintTy::U128 => 128,
-        })
     }
 }
 
@@ -1260,13 +1210,6 @@ impl FloatTy {
         match *self {
             FloatTy::F32 => "f32",
             FloatTy::F64 => "f64",
-        }
-    }
-
-    pub fn bit_width(&self) -> usize {
-        match *self {
-            FloatTy::F32 => 32,
-            FloatTy::F64 => 64,
         }
     }
 }
@@ -1479,15 +1422,6 @@ pub struct FnDecl {
     pub inputs: Vec<Arg>,
     pub output: FunctionRetTy,
     pub variadic: bool,
-}
-
-impl FnDecl {
-    pub fn get_self(&self) -> Option<ExplicitSelf> {
-        self.inputs.get(0).and_then(Arg::to_self)
-    }
-    pub fn has_self(&self) -> bool {
-        self.inputs.get(0).map(Arg::is_self).unwrap_or(false)
-    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Debug)]
@@ -1757,11 +1691,6 @@ impl VariantData {
             _ => &[],
         }
     }
-    pub fn id(&self) -> NodeId {
-        match *self {
-            VariantData::Struct(_, id) | VariantData::Tuple(_, id) | VariantData::Unit(id) => id,
-        }
-    }
     pub fn is_struct(&self) -> bool {
         if let VariantData::Struct(..) = *self {
             true
@@ -1771,13 +1700,6 @@ impl VariantData {
     }
     pub fn is_tuple(&self) -> bool {
         if let VariantData::Tuple(..) = *self {
-            true
-        } else {
-            false
-        }
-    }
-    pub fn is_unit(&self) -> bool {
-        if let VariantData::Unit(..) = *self {
             true
         } else {
             false
@@ -1882,30 +1804,6 @@ pub enum ItemKind {
     MacroDef(MacroDef),
 }
 
-impl ItemKind {
-    pub fn descriptive_variant(&self) -> &str {
-        match *self {
-            ItemKind::ExternCrate(..) => "extern crate",
-            ItemKind::Use(..) => "use",
-            ItemKind::Static(..) => "static item",
-            ItemKind::Const(..) => "constant item",
-            ItemKind::Fn(..) => "function",
-            ItemKind::Mod(..) => "module",
-            ItemKind::ForeignMod(..) => "foreign module",
-            ItemKind::GlobalAsm(..) => "global asm",
-            ItemKind::Ty(..) => "type alias",
-            ItemKind::Enum(..) => "enum",
-            ItemKind::Struct(..) => "struct",
-            ItemKind::Union(..) => "union",
-            ItemKind::Trait(..) => "trait",
-            ItemKind::Mac(..)
-            | ItemKind::MacroDef(..)
-            | ItemKind::Impl(..)
-            | ItemKind::DefaultImpl(..) => "item",
-        }
-    }
-}
-
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Hash, Debug)]
 pub struct ForeignItem {
     pub ident: Ident,
@@ -1924,13 +1822,4 @@ pub enum ForeignItemKind {
     /// A foreign static item (`static ext: u8`), with optional mutability
     /// (the boolean is true when mutable)
     Static(P<Ty>, bool),
-}
-
-impl ForeignItemKind {
-    pub fn descriptive_variant(&self) -> &str {
-        match *self {
-            ForeignItemKind::Fn(..) => "foreign function",
-            ForeignItemKind::Static(..) => "foreign static item",
-        }
-    }
 }

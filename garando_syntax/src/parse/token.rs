@@ -187,14 +187,6 @@ pub enum Token {
 }
 
 impl Token {
-    /// Returns `true` if the token starts with '>'.
-    pub fn is_like_gt(&self) -> bool {
-        match *self {
-            BinOp(Shr) | BinOpEq(Shr) | Gt | Ge => true,
-            _ => false,
-        }
-    }
-
     /// Returns `true` if the token can appear at the start of an expression.
     pub fn can_begin_expr(&self) -> bool {
         match *self {
@@ -264,22 +256,6 @@ impl Token {
     /// Returns `true` if the token is an identifier.
     pub fn is_ident(&self) -> bool {
         self.ident().is_some()
-    }
-
-    /// Returns `true` if the token is a documentation comment.
-    pub fn is_doc_comment(&self) -> bool {
-        match *self {
-            DocComment(..) => true,
-            _ => false,
-        }
-    }
-
-    /// Returns `true` if the token is interpolated.
-    pub fn is_interpolated(&self) -> bool {
-        match *self {
-            Interpolated(..) => true,
-            _ => false,
-        }
     }
 
     /// Returns `true` if the token is an interpolated path.

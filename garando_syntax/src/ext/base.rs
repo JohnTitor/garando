@@ -584,31 +584,6 @@ pub enum SyntaxExtension {
     ),
 }
 
-impl SyntaxExtension {
-    /// Return which kind of macro calls this syntax extension.
-    pub fn kind(&self) -> MacroKind {
-        match *self {
-            SyntaxExtension::DeclMacro(..)
-            | SyntaxExtension::NormalTT(..)
-            | SyntaxExtension::IdentTT(..)
-            | SyntaxExtension::ProcMacro(..) => MacroKind::Bang,
-            SyntaxExtension::MultiDecorator(..)
-            | SyntaxExtension::MultiModifier(..)
-            | SyntaxExtension::AttrProcMacro(..) => MacroKind::Attr,
-            SyntaxExtension::ProcMacroDerive(..) | SyntaxExtension::BuiltinDerive(..) => {
-                MacroKind::Derive
-            }
-        }
-    }
-
-    pub fn is_modern(&self) -> bool {
-        match *self {
-            SyntaxExtension::DeclMacro(..) => true,
-            _ => false,
-        }
-    }
-}
-
 pub type NamedSyntaxExtension = (Name, SyntaxExtension);
 
 pub trait Resolver {

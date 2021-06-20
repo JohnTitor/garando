@@ -286,27 +286,6 @@ impl<'a> StripUnconfigured<'a> {
         self.configure(stmt)
     }
 
-    pub fn configure_struct_expr_field(&mut self, field: ast::Field) -> Option<ast::Field> {
-        if !self
-            .features
-            .map(|features| features.struct_field_attributes)
-            .unwrap_or(true)
-        {
-            if !field.attrs.is_empty() {
-                let mut err = feature_err(
-                    self.sess,
-                    "struct_field_attributes",
-                    field.span,
-                    GateIssue::Language,
-                    "attributes on struct literal fields are unstable",
-                );
-                err.emit();
-            }
-        }
-
-        self.configure(field)
-    }
-
     pub fn configure_pat(&mut self, pattern: P<ast::Pat>) -> P<ast::Pat> {
         pattern.map(|mut pattern| {
             if let ast::PatKind::Struct(path, fields, etc) = pattern.node {

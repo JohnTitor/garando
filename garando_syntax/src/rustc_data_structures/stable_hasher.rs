@@ -292,16 +292,3 @@ where
         }
     }
 }
-
-impl<I: crate::rustc_data_structures::indexed_vec::Idx, T, CTX> HashStable<CTX>
-    for crate::rustc_data_structures::indexed_vec::IndexVec<I, T>
-where
-    T: HashStable<CTX>,
-{
-    fn hash_stable<W: StableHasherResult>(&self, ctx: &mut CTX, hasher: &mut StableHasher<W>) {
-        self.len().hash_stable(ctx, hasher);
-        for v in &self.raw {
-            v.hash_stable(ctx, hasher);
-        }
-    }
-}

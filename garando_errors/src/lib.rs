@@ -14,7 +14,6 @@ pub mod diagnostic;
 pub mod diagnostic_builder;
 pub mod emitter;
 mod lock;
-pub mod registry;
 pub mod snippet;
 pub mod styled_buffer;
 
