@@ -1120,10 +1120,10 @@ impl<'a> Context<'a> {
     }
 }
 
-pub fn check_attribute(attr: &ast::Attribute, parse_sess: &ParseSess, features: &Features) {
+pub fn check_attribute(attr: &ast::Attribute, parse_sess: &ParseSess) {
     let cx = Context {
-        features: features,
-        parse_sess: parse_sess,
+        features: &Features::new(),
+        parse_sess,
         plugin_attributes: &[],
     };
     cx.check_attribute(attr, true);

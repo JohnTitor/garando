@@ -865,9 +865,8 @@ impl<'a, 'b> InvocationCollector<'a, 'b> {
     // Detect use of feature-gated or invalid attributes on macro invocations
     // since they will not be detected after macro expansion.
     fn check_attributes(&mut self, attrs: &[ast::Attribute]) {
-        let features = self.cx.ecfg.features.unwrap();
         for attr in attrs.iter() {
-            feature_gate::check_attribute(attr, self.cx.parse_sess, features);
+            feature_gate::check_attribute(attr, self.cx.parse_sess);
         }
     }
 }
