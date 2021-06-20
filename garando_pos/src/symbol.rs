@@ -88,10 +88,6 @@ impl Symbol {
         with_interner(|interner| interner.intern(string))
     }
 
-    pub fn interned(self) -> Self {
-        with_interner(|interner| interner.interned(self))
-    }
-
     /// gensym's a new usize, using the current interner.
     pub fn gensym(string: &str) -> Self {
         with_interner(|interner| interner.gensym(string))
@@ -176,14 +172,6 @@ impl Interner {
         self.strings.push(string.clone());
         self.names.insert(string, name);
         name
-    }
-
-    pub fn interned(&self, symbol: Symbol) -> Symbol {
-        if (symbol.0 as usize) < self.strings.len() {
-            symbol
-        } else {
-            self.interned(self.gensyms[(!0 - symbol.0) as usize])
-        }
     }
 
     fn gensym(&mut self, string: &str) -> Symbol {

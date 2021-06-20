@@ -1211,9 +1211,6 @@ impl<'a> Parser<'a> {
     pub fn bug(&self, m: &str) -> ! {
         self.sess.span_diagnostic.span_bug(self.span, m)
     }
-    pub fn warn(&self, m: &str) {
-        self.sess.span_diagnostic.span_warn(self.span, m)
-    }
     pub fn span_warn(&self, sp: Span, m: &str) {
         self.sess.span_diagnostic.span_warn(sp, m)
     }

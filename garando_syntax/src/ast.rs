@@ -619,19 +619,7 @@ impl BinOpKind {
             Gt => ">",
         }
     }
-    pub fn lazy(&self) -> bool {
-        match *self {
-            BinOpKind::And | BinOpKind::Or => true,
-            _ => false,
-        }
-    }
 
-    pub fn is_shift(&self) -> bool {
-        match *self {
-            BinOpKind::Shl | BinOpKind::Shr => true,
-            _ => false,
-        }
-    }
     pub fn is_comparison(&self) -> bool {
         use self::BinOpKind::*;
         match *self {

@@ -82,11 +82,6 @@ impl Diagnostic {
         self
     }
 
-    pub fn warn(&mut self, msg: &str) -> &mut Self {
-        self.sub(Level::Warning, msg, MultiSpan::default(), None);
-        self
-    }
-
     pub fn span_warn<S: Into<MultiSpan>>(&mut self, sp: S, msg: &str) -> &mut Self {
         self.sub(Level::Warning, msg, sp.into(), None);
         self
@@ -135,18 +130,6 @@ impl Diagnostic {
 
     pub fn styled_message(&self) -> &Vec<(String, Style)> {
         &self.message
-    }
-
-    pub fn level(&self) -> Level {
-        self.level
-    }
-
-    /// Used by a lint. Copies over all details *but* the "main
-    /// message".
-    pub fn copy_details_not_message(&mut self, from: &Diagnostic) {
-        self.span = from.span.clone();
-        self.code = from.code.clone();
-        self.children.extend(from.children.iter().cloned())
     }
 
     /// Convenience function for internal use, clients should use one of the

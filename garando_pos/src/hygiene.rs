@@ -59,10 +59,6 @@ impl Mark {
         self.0
     }
 
-    pub fn from_u32(raw: u32) -> Mark {
-        Mark(raw)
-    }
-
     pub fn expn_info(self) -> Option<ExpnInfo> {
         HygieneData::with(|data| data.marks[self.0 as usize].expn_info.clone())
     }
@@ -155,17 +151,6 @@ impl SyntaxContext {
             *self = data.syntax_contexts[self.0 as usize].prev_ctxt;
             outer_mark
         })
-    }
-
-    /// Adjust this context for resolution in a scope created by the given expansion.
-    /// This returns the expansion whose definition scope we use to privacy check the resolution,
-    /// or `None` if we privacy check as usual (i.e. not w.r.t. a macro definition scope).
-    pub fn adjust(&mut self, expansion: Mark) -> Option<Mark> {
-        let mut scope = None;
-        while !expansion.is_descendant_of(self.outer()) {
-            scope = Some(self.remove_mark());
-        }
-        scope
     }
 
     pub fn modern(self) -> SyntaxContext {

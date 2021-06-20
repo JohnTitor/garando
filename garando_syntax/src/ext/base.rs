@@ -836,9 +836,6 @@ impl<'a> ExtCtxt<'a> {
     pub fn span_warn(&self, sp: Span, msg: &str) {
         self.parse_sess.span_diagnostic.span_warn(sp, msg);
     }
-    pub fn span_unimpl(&self, sp: Span, msg: &str) -> ! {
-        self.parse_sess.span_diagnostic.span_unimpl(sp, msg);
-    }
     pub fn span_bug(&self, sp: Span, msg: &str) -> ! {
         self.parse_sess.span_diagnostic.span_bug(sp, msg);
     }

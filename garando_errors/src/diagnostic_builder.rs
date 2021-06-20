@@ -102,7 +102,6 @@ impl<'a> DiagnosticBuilder<'a> {
                                                   sp: S,
                                                   msg: &str)
                                                   -> &mut Self);
-    forward!(pub fn warn(&mut self, msg: &str) -> &mut Self);
     forward!(pub fn span_warn<S: Into<MultiSpan>>(&mut self, sp: S, msg: &str) -> &mut Self);
     forward!(pub fn help(&mut self , msg: &str) -> &mut Self);
     forward!(pub fn span_help<S: Into<MultiSpan>>(&mut self,
@@ -135,13 +134,6 @@ impl<'a> DiagnosticBuilder<'a> {
             handler: handler,
             diagnostic: Diagnostic::new_with_code(level, code, message),
         }
-    }
-
-    pub fn into_diagnostic(mut self) -> Diagnostic {
-        // annoyingly, the Drop impl means we can't actually move
-        let result = self.diagnostic.clone();
-        self.cancel();
-        result
     }
 }
 
