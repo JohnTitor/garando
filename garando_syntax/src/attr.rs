@@ -1155,8 +1155,6 @@ pub enum IntType {
     UnsignedInt(ast::UintTy),
 }
 
-
-
 impl MetaItem {
     fn tokens(&self) -> TokenStream {
         let ident = TokenTree::Token(self.span, Token::Ident(Ident::with_empty_ctxt(self.name)));

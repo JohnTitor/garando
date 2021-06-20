@@ -96,9 +96,7 @@ impl<'a> Parser<'a> {
                     self.bump();
                     if let InnerAttributeParsePolicy::NotPermitted { reason } = inner_parse_policy {
                         let span = self.span;
-                        self.diagnostic()
-                            .struct_span_err(span, reason)
-                            .emit()
+                        self.diagnostic().struct_span_err(span, reason).emit()
                     }
                     ast::AttrStyle::Inner
                 } else {
