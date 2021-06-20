@@ -55,15 +55,6 @@ pub struct MultiSpan {
 }
 
 impl Span {
-    /// Returns a new span representing just the end-point of this span
-    pub fn end_point(self) -> Span {
-        let lo = cmp::max(self.hi.0 - 1, self.lo.0);
-        Span {
-            lo: BytePos(lo),
-            ..self
-        }
-    }
-
     /// Returns a new span representing the next character after the end-point of this span
     pub fn next_point(self) -> Span {
         let lo = cmp::max(self.hi.0, self.lo.0 + 1);
@@ -95,18 +86,6 @@ impl Span {
         self.lo == other.lo && self.hi == other.hi
     }
 
-    /// Returns `Some(span)`, where the start is trimmed by the end of `other`
-    pub fn trim_start(self, other: Span) -> Option<Span> {
-        if self.hi > other.hi {
-            Some(Span {
-                lo: cmp::max(self.lo, other.hi),
-                ..self
-            })
-        } else {
-            None
-        }
-    }
-
     /// Return the source span - this is either the supplied span, or the span for
     /// the macro callsite that expanded to it.
     pub fn source_callsite(self) -> Span {
@@ -115,21 +94,6 @@ impl Span {
             .expn_info()
             .map(|info| info.call_site.source_callsite())
             .unwrap_or(self)
-    }
-
-    /// Return the source callee.
-    ///
-    /// Returns None if the supplied span has no expansion trace,
-    /// else returns the NameAndSpan for the macro definition
-    /// corresponding to the source callsite.
-    pub fn source_callee(self) -> Option<NameAndSpan> {
-        fn source_callee(info: ExpnInfo) -> NameAndSpan {
-            match info.call_site.ctxt.outer().expn_info() {
-                Some(info) => source_callee(info),
-                None => info.callee,
-            }
-        }
-        self.ctxt.outer().expn_info().map(source_callee)
     }
 
     /// Check if a span is "internal" to a macro in which #[unstable]
@@ -189,18 +153,6 @@ impl Span {
             },
         }
     }
-
-    pub fn until(self, end: Span) -> Span {
-        Span {
-            lo: self.lo,
-            hi: end.lo,
-            ctxt: if end.ctxt == SyntaxContext::empty() {
-                end.ctxt
-            } else {
-                self.ctxt
-            },
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -240,13 +192,6 @@ impl MultiSpan {
     pub fn from_span(primary_span: Span) -> MultiSpan {
         MultiSpan {
             primary_spans: vec![primary_span],
-            span_labels: vec![],
-        }
-    }
-
-    pub fn from_spans(vec: Vec<Span>) -> MultiSpan {
-        MultiSpan {
-            primary_spans: vec,
             span_labels: vec![],
         }
     }
@@ -535,17 +480,6 @@ impl FileMap {
         self.multibyte_chars.borrow_mut().push(mbc);
     }
 
-    pub fn is_real_file(&self) -> bool {
-        !(self.name.starts_with('<') && self.name.ends_with('>'))
-    }
-
-    pub fn is_imported(&self) -> bool {
-        self.src.is_none()
-    }
-
-    pub fn byte_length(&self) -> u32 {
-        self.end_pos.0 - self.start_pos.0
-    }
     pub fn count_lines(&self) -> usize {
         self.lines.borrow().len()
     }
@@ -566,20 +500,6 @@ impl FileMap {
             Some(line_index as usize)
         } else {
             None
-        }
-    }
-
-    pub fn line_bounds(&self, line_index: usize) -> (BytePos, BytePos) {
-        if self.start_pos == self.end_pos {
-            return (self.start_pos, self.end_pos);
-        }
-
-        let lines = self.lines.borrow();
-        assert!(line_index < lines.len());
-        if line_index == (lines.len() - 1) {
-            (lines[line_index], self.end_pos)
-        } else {
-            (lines[line_index], lines[line_index + 1])
         }
     }
 }

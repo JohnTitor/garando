@@ -5,7 +5,7 @@
 //! and definition contexts*. J. Funct. Program. 22, 2 (March 2012), 181-216.
 //! DOI=10.1017/S0956796812000093 http://dx.doi.org/10.1017/S0956796812000093
 
-use crate::symbol::{Ident, Symbol};
+use crate::symbol::Symbol;
 use crate::Span;
 
 use std::cell::RefCell;
@@ -71,23 +71,6 @@ impl Mark {
         HygieneData::with(|data| data.marks[self.0 as usize].expn_info = Some(info))
     }
 
-    pub fn modern(mut self) -> Mark {
-        HygieneData::with(|data| loop {
-            if self == Mark::root() || data.marks[self.0 as usize].modern {
-                return self;
-            }
-            self = data.marks[self.0 as usize].parent;
-        })
-    }
-
-    pub fn is_modern(self) -> bool {
-        HygieneData::with(|data| data.marks[self.0 as usize].modern)
-    }
-
-    pub fn set_modern(self) {
-        HygieneData::with(|data| data.marks[self.0 as usize].modern = true)
-    }
-
     pub fn is_descendant_of(mut self, ancestor: Mark) -> bool {
         HygieneData::with(|data| {
             while self != ancestor {
@@ -105,7 +88,6 @@ struct HygieneData {
     marks: Vec<MarkData>,
     syntax_contexts: Vec<SyntaxContextData>,
     markings: HashMap<(SyntaxContext, Mark), SyntaxContext>,
-    gensym_to_ctxt: HashMap<Symbol, SyntaxContext>,
 }
 
 impl HygieneData {
@@ -114,7 +96,6 @@ impl HygieneData {
             marks: vec![MarkData::default()],
             syntax_contexts: vec![SyntaxContextData::default()],
             markings: HashMap::new(),
-            gensym_to_ctxt: HashMap::new(),
         }
     }
 
@@ -124,10 +105,6 @@ impl HygieneData {
         }
         HYGIENE_DATA.with(|data| f(&mut *data.borrow_mut()))
     }
-}
-
-pub fn clear_markings() {
-    HygieneData::with(|data| data.markings = HashMap::new());
 }
 
 impl SyntaxContext {
@@ -189,50 +166,6 @@ impl SyntaxContext {
             scope = Some(self.remove_mark());
         }
         scope
-    }
-
-    /// Adjust this context for resolution in a scope created by the given expansion
-    /// via a glob import with the given `SyntaxContext`.
-    /// This returns `None` if the context cannot be glob-adjusted.
-    /// Otherwise, it returns the scope to use when privacy checking (see `adjust` for details).
-    pub fn glob_adjust(
-        &mut self,
-        expansion: Mark,
-        mut glob_ctxt: SyntaxContext,
-    ) -> Option<Option<Mark>> {
-        let mut scope = None;
-        while !expansion.is_descendant_of(glob_ctxt.outer()) {
-            scope = Some(glob_ctxt.remove_mark());
-            if self.remove_mark() != scope.unwrap() {
-                return None;
-            }
-        }
-        if self.adjust(expansion).is_some() {
-            return None;
-        }
-        Some(scope)
-    }
-
-    /// Undo `glob_adjust` if possible:
-    pub fn reverse_glob_adjust(
-        &mut self,
-        expansion: Mark,
-        mut glob_ctxt: SyntaxContext,
-    ) -> Option<Option<Mark>> {
-        if self.adjust(expansion).is_some() {
-            return None;
-        }
-
-        let mut marks = Vec::new();
-        while !expansion.is_descendant_of(glob_ctxt.outer()) {
-            marks.push(glob_ctxt.remove_mark());
-        }
-
-        let scope = marks.last().cloned();
-        while let Some(mark) = marks.pop() {
-            *self = self.apply_mark(mark);
-        }
-        Some(scope)
     }
 
     pub fn modern(self) -> SyntaxContext {
@@ -319,25 +252,5 @@ impl<'de> Deserialize<'de> for SyntaxContext {
     {
         // FIXME(jseyfried) intercrate hygiene
         Deserialize::deserialize(deserializer).map(|()| SyntaxContext::empty())
-    }
-}
-
-impl Symbol {
-    pub fn from_ident(ident: Ident) -> Symbol {
-        HygieneData::with(|data| {
-            let gensym = ident.name.gensymed();
-            data.gensym_to_ctxt.insert(gensym, ident.ctxt);
-            gensym
-        })
-    }
-
-    pub fn to_ident(self) -> Ident {
-        HygieneData::with(|data| match data.gensym_to_ctxt.get(&self) {
-            Some(&ctxt) => Ident {
-                name: self.interned(),
-                ctxt,
-            },
-            None => Ident::with_empty_ctxt(self),
-        })
     }
 }

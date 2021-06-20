@@ -29,13 +29,6 @@ impl Ident {
     pub fn from_str(string: &str) -> Ident {
         Ident::with_empty_ctxt(Symbol::intern(string))
     }
-
-    pub fn modern(self) -> Ident {
-        Ident {
-            name: self.name,
-            ctxt: self.ctxt.modern(),
-        }
-    }
 }
 
 impl fmt::Debug for Ident {
@@ -114,10 +107,6 @@ impl Symbol {
                 string: ::std::mem::transmute::<&str, &str>(interner.get(self)),
             }
         })
-    }
-
-    pub fn as_u32(self) -> u32 {
-        self.0
     }
 }
 
