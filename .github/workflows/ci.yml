@@ -30,5 +30,9 @@ jobs:
         shell: bash
         run: TOOLCHAIN=${{ matrix.version }} TARGET=${{ matrix.target.triple }} sh ./ci/install-rust.sh
 
+      - name: Rustfmt check
+        if: matrix.version == 'stable' && matrix.target.name == 'Linux'
+        run: cargo fmt --all -- --check
+
       - name: Run tests
         run: cargo test --all -- --nocapture
