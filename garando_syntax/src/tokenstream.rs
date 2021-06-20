@@ -112,34 +112,10 @@ impl TokenTree {
         macro_parser::parse(cx.parse_sess(), tts, mtch, Some(directory), true)
     }
 
-    /// Check if this TokenTree is equal to the other, regardless of span information.
-    pub fn eq_unspanned(&self, other: &TokenTree) -> bool {
-        match (self, other) {
-            (&TokenTree::Token(_, ref tk), &TokenTree::Token(_, ref tk2)) => tk == tk2,
-            (&TokenTree::Delimited(_, ref dl), &TokenTree::Delimited(_, ref dl2)) => {
-                dl.delim == dl2.delim
-                    && dl
-                        .stream()
-                        .trees()
-                        .zip(dl2.stream().trees())
-                        .all(|(tt, tt2)| tt.eq_unspanned(&tt2))
-            }
-            (_, _) => false,
-        }
-    }
-
     /// Retrieve the TokenTree's span.
     pub fn span(&self) -> Span {
         match *self {
             TokenTree::Token(sp, _) | TokenTree::Delimited(sp, _) => sp,
-        }
-    }
-
-    /// Indicates if the stream is a token that is equal to the provided token.
-    pub fn eq_token(&self, t: Token) -> bool {
-        match *self {
-            TokenTree::Token(_, ref tk) => *tk == t,
-            _ => false,
         }
     }
 }
@@ -224,16 +200,6 @@ impl TokenStream {
 
     pub fn into_trees(self) -> Cursor {
         Cursor::new(self)
-    }
-
-    /// Compares two TokenStreams, checking equality without regarding span information.
-    pub fn eq_unspanned(&self, other: &TokenStream) -> bool {
-        for (t1, t2) in self.trees().zip(other.trees()) {
-            if !t1.eq_unspanned(&t2) {
-                return false;
-            }
-        }
-        true
     }
 }
 
@@ -472,7 +438,6 @@ mod tests {
         let eq_res = TokenStream::concat(vec![test_fst, test_snd]);
         assert_eq!(test_res.trees().count(), 5);
         assert_eq!(eq_res.trees().count(), 5);
-        assert_eq!(test_res.eq_unspanned(&eq_res), true);
     }
 
     #[test]

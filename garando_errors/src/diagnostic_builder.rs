@@ -1,5 +1,4 @@
 use crate::Diagnostic;
-use crate::DiagnosticStyledString;
 
 use crate::syntax_pos::{MultiSpan, Span};
 use crate::Handler;
@@ -86,10 +85,6 @@ impl<'a> DiagnosticBuilder<'a> {
         if self.level == Level::Error {
             self.handler.panic_if_treat_err_as_bug();
         }
-
-        // if self.is_fatal() {
-        //     panic!(FatalError);
-        // }
     }
 
     /// Add a span/label to be included in the resulting snippet.
@@ -103,26 +98,10 @@ impl<'a> DiagnosticBuilder<'a> {
         self
     }
 
-    forward!(pub fn note_expected_found(&mut self,
-                                        label: &dyn fmt::Display,
-                                        expected: DiagnosticStyledString,
-                                        found: DiagnosticStyledString)
-                                        -> &mut Self);
-
-    forward!(pub fn note_expected_found_extra(&mut self,
-                                              label: &dyn fmt::Display,
-                                              expected: DiagnosticStyledString,
-                                              found: DiagnosticStyledString,
-                                              expected_extra: &dyn fmt::Display,
-                                              found_extra: &dyn fmt::Display)
-                                              -> &mut Self);
-
-    forward!(pub fn note(&mut self, msg: &str) -> &mut Self);
     forward!(pub fn span_note<S: Into<MultiSpan>>(&mut self,
                                                   sp: S,
                                                   msg: &str)
                                                   -> &mut Self);
-    forward!(pub fn warn(&mut self, msg: &str) -> &mut Self);
     forward!(pub fn span_warn<S: Into<MultiSpan>>(&mut self, sp: S, msg: &str) -> &mut Self);
     forward!(pub fn help(&mut self , msg: &str) -> &mut Self);
     forward!(pub fn span_help<S: Into<MultiSpan>>(&mut self,
@@ -134,11 +113,6 @@ impl<'a> DiagnosticBuilder<'a> {
                                     msg: &str,
                                     suggestion: String)
                                     -> &mut Self);
-    forward!(pub fn span_suggestions(&mut self,
-                                     sp: Span,
-                                     msg: &str,
-                                     suggestions: Vec<String>)
-                                     -> &mut Self);
     forward!(pub fn set_span<S: Into<MultiSpan>>(&mut self, sp: S) -> &mut Self);
     forward!(pub fn code(&mut self, s: String) -> &mut Self);
 
@@ -160,13 +134,6 @@ impl<'a> DiagnosticBuilder<'a> {
             handler: handler,
             diagnostic: Diagnostic::new_with_code(level, code, message),
         }
-    }
-
-    pub fn into_diagnostic(mut self) -> Diagnostic {
-        // annoyingly, the Drop impl means we can't actually move
-        let result = self.diagnostic.clone();
-        self.cancel();
-        result
     }
 }
 

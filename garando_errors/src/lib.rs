@@ -14,7 +14,6 @@ pub mod diagnostic;
 pub mod diagnostic_builder;
 pub mod emitter;
 mod lock;
-pub mod registry;
 pub mod snippet;
 pub mod styled_buffer;
 
@@ -70,9 +69,7 @@ pub struct Substitution {
 pub trait CodeMapper {
     fn lookup_char_pos(&self, pos: BytePos) -> Loc;
     fn span_to_lines(&self, sp: Span) -> FileLinesResult;
-    fn span_to_string(&self, sp: Span) -> String;
     fn span_to_filename(&self, sp: Span) -> FileName;
-    fn merge_spans(&self, sp_lhs: Span, sp_rhs: Span) -> Option<Span>;
 }
 
 impl CodeSuggestion {
@@ -265,14 +262,6 @@ impl Handler {
         }
     }
 
-    pub fn set_continue_after_error(&self, continue_after_error: bool) {
-        self.continue_after_error.set(continue_after_error);
-    }
-
-    pub fn struct_dummy<'a>(&'a self) -> DiagnosticBuilder<'a> {
-        DiagnosticBuilder::new(self, Level::Cancelled, "")
-    }
-
     pub fn struct_span_warn<'a, S: Into<MultiSpan>>(
         &'a self,
         sp: S,
@@ -280,20 +269,6 @@ impl Handler {
     ) -> DiagnosticBuilder<'a> {
         let mut result = DiagnosticBuilder::new(self, Level::Warning, msg);
         result.set_span(sp);
-        if !self.can_emit_warnings {
-            result.cancel();
-        }
-        result
-    }
-    pub fn struct_span_warn_with_code<'a, S: Into<MultiSpan>>(
-        &'a self,
-        sp: S,
-        msg: &str,
-        code: &str,
-    ) -> DiagnosticBuilder<'a> {
-        let mut result = DiagnosticBuilder::new(self, Level::Warning, msg);
-        result.set_span(sp);
-        result.code(code.to_owned());
         if !self.can_emit_warnings {
             result.cancel();
         }
@@ -411,18 +386,8 @@ impl Handler {
         self.emit(&sp.into(), msg, Bug);
         panic!("{}", ExplicitBug);
     }
-    pub fn delay_span_bug<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
-        if self.treat_err_as_bug {
-            self.span_bug(sp, msg);
-        }
-        let mut delayed = self.delayed_span_bug.borrow_mut();
-        *delayed = Some((sp.into(), msg.to_string()));
-    }
     pub fn span_bug_no_panic<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
         self.emit(&sp.into(), msg, Bug);
-    }
-    pub fn span_note_without_error<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
-        self.emit(&sp.into(), msg, Note);
     }
     pub fn span_note_diag<'a>(&'a self, sp: Span, msg: &str) -> DiagnosticBuilder<'a> {
         let mut db = DiagnosticBuilder::new(self, Note, msg);
@@ -440,17 +405,6 @@ impl Handler {
         db.emit();
         FatalError
     }
-    pub fn err(&self, msg: &str) {
-        if self.treat_err_as_bug {
-            self.bug(msg);
-        }
-        let mut db = DiagnosticBuilder::new(self, Error, msg);
-        db.emit();
-    }
-    pub fn warn(&self, msg: &str) {
-        let mut db = DiagnosticBuilder::new(self, Warning, msg);
-        db.emit();
-    }
     pub fn note_without_error(&self, msg: &str) {
         let mut db = DiagnosticBuilder::new(self, Note, msg);
         db.emit();
@@ -459,9 +413,6 @@ impl Handler {
         let mut db = DiagnosticBuilder::new(self, Bug, msg);
         db.emit();
         panic!("{}", ExplicitBug);
-    }
-    pub fn unimpl(&self, msg: &str) -> ! {
-        self.bug(&format!("unimplemented {}", msg));
     }
 
     pub fn bump_err_count(&self) {

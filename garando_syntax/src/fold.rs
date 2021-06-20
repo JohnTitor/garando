@@ -130,20 +130,16 @@ pub trait Folder: Sized {
         noop_fold_foreign_mod(nm, self)
     }
 
-    fn fold_global_asm(&mut self, ga: P<GlobalAsm>) -> P<GlobalAsm> {
-        noop_fold_global_asm(ga, self)
-    }
-
     fn fold_variant(&mut self, v: Variant) -> Variant {
         noop_fold_variant(v, self)
     }
 
     fn fold_ident(&mut self, i: Ident) -> Ident {
-        noop_fold_ident(i, self)
+        i
     }
 
     fn fold_usize(&mut self, i: usize) -> usize {
-        noop_fold_usize(i, self)
+        i
     }
 
     fn fold_path(&mut self, p: Path) -> Path {
@@ -416,10 +412,6 @@ pub fn noop_fold_foreign_mod<T: Folder>(
     }
 }
 
-pub fn noop_fold_global_asm<T: Folder>(ga: P<GlobalAsm>, _: &mut T) -> P<GlobalAsm> {
-    ga
-}
-
 pub fn noop_fold_variant<T: Folder>(v: Variant, fld: &mut T) -> Variant {
     Spanned {
         node: Variant_ {
@@ -430,14 +422,6 @@ pub fn noop_fold_variant<T: Folder>(v: Variant, fld: &mut T) -> Variant {
         },
         span: fld.new_span(v.span),
     }
-}
-
-pub fn noop_fold_ident<T: Folder>(i: Ident, _: &mut T) -> Ident {
-    i
-}
-
-pub fn noop_fold_usize<T: Folder>(i: usize, _: &mut T) -> usize {
-    i
 }
 
 pub fn noop_fold_path<T: Folder>(Path { segments, span }: Path, fld: &mut T) -> Path {
@@ -938,7 +922,7 @@ pub fn noop_fold_item_kind<T: Folder>(i: ItemKind, folder: &mut T) -> ItemKind {
         }
         ItemKind::Mod(m) => ItemKind::Mod(folder.fold_mod(m)),
         ItemKind::ForeignMod(nm) => ItemKind::ForeignMod(folder.fold_foreign_mod(nm)),
-        ItemKind::GlobalAsm(ga) => ItemKind::GlobalAsm(folder.fold_global_asm(ga)),
+        ItemKind::GlobalAsm(ga) => ItemKind::GlobalAsm(ga),
         ItemKind::Ty(t, generics) => {
             ItemKind::Ty(folder.fold_ty(t), folder.fold_generics(generics))
         }

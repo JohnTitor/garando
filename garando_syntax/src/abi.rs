@@ -36,9 +36,6 @@ pub struct AbiData {
 
     /// Name of this ABI as we like it called.
     name: &'static str,
-
-    /// A generic ABI is supported on all platforms.
-    generic: bool,
 }
 
 #[allow(non_upper_case_globals)]
@@ -47,93 +44,75 @@ const AbiDatas: &'static [AbiData] = &[
     AbiData {
         abi: Abi::Cdecl,
         name: "cdecl",
-        generic: false,
     },
     AbiData {
         abi: Abi::Stdcall,
         name: "stdcall",
-        generic: false,
     },
     AbiData {
         abi: Abi::Fastcall,
         name: "fastcall",
-        generic: false,
     },
     AbiData {
         abi: Abi::Vectorcall,
         name: "vectorcall",
-        generic: false,
     },
     AbiData {
         abi: Abi::Thiscall,
         name: "thiscall",
-        generic: false,
     },
     AbiData {
         abi: Abi::Aapcs,
         name: "aapcs",
-        generic: false,
     },
     AbiData {
         abi: Abi::Win64,
         name: "win64",
-        generic: false,
     },
     AbiData {
         abi: Abi::SysV64,
         name: "sysv64",
-        generic: false,
     },
     AbiData {
         abi: Abi::PtxKernel,
         name: "ptx-kernel",
-        generic: false,
     },
     AbiData {
         abi: Abi::Msp430Interrupt,
         name: "msp430-interrupt",
-        generic: false,
     },
     AbiData {
         abi: Abi::X86Interrupt,
         name: "x86-interrupt",
-        generic: false,
     },
     // Cross-platform ABIs
     AbiData {
         abi: Abi::Rust,
         name: "Rust",
-        generic: true,
     },
     AbiData {
         abi: Abi::C,
         name: "C",
-        generic: true,
     },
     AbiData {
         abi: Abi::System,
         name: "system",
-        generic: true,
     },
     AbiData {
         abi: Abi::RustIntrinsic,
         name: "rust-intrinsic",
-        generic: true,
     },
     AbiData {
         abi: Abi::RustCall,
         name: "rust-call",
-        generic: true,
     },
     AbiData {
         abi: Abi::PlatformIntrinsic,
         name: "platform-intrinsic",
-        generic: true,
     },
     AbiData {
         abi: Abi::Unadjusted,
         name: "unadjusted",
-        generic: true,
     },
 ];
 
@@ -162,10 +141,6 @@ impl Abi {
 
     pub fn name(&self) -> &'static str {
         self.data().name
-    }
-
-    pub fn generic(&self) -> bool {
-        self.data().generic
     }
 }
 

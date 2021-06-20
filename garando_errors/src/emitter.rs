@@ -120,13 +120,6 @@ impl EmitterWriter {
         }
     }
 
-    pub fn new(dst: Box<dyn Write + Send>, code_map: Option<Rc<dyn CodeMapper>>) -> EmitterWriter {
-        EmitterWriter {
-            dst: Raw(dst),
-            cm: code_map,
-        }
-    }
-
     fn preprocess_annotations(&self, msp: &MultiSpan) -> Vec<FileWithAnnotatedLines> {
         fn add_annotation_to_file(
             file_vec: &mut Vec<FileWithAnnotatedLines>,

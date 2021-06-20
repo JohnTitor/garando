@@ -196,16 +196,6 @@ impl NestedMetaItem {
     pub fn is_word(&self) -> bool {
         self.word().is_some()
     }
-
-    /// Returns `true` if self is a MetaItem and the meta item is a ValueString.
-    pub fn is_value_str(&self) -> bool {
-        self.value_str().is_some()
-    }
-
-    /// Returns `true` if self is a MetaItem and the meta item is a list.
-    pub fn is_meta_item_list(&self) -> bool {
-        self.meta_item_list().is_some()
-    }
 }
 
 impl Attribute {
@@ -245,15 +235,6 @@ impl Attribute {
     pub fn span(&self) -> Span {
         self.span
     }
-
-    pub fn is_meta_item_list(&self) -> bool {
-        self.meta_item_list().is_some()
-    }
-
-    /// Indicates if the attribute is a Value String.
-    pub fn is_value_str(&self) -> bool {
-        self.value_str().is_some()
-    }
 }
 
 impl MetaItem {
@@ -291,14 +272,6 @@ impl MetaItem {
 
     pub fn check_name(&self, name: &str) -> bool {
         self.name() == name
-    }
-
-    pub fn is_value_str(&self) -> bool {
-        self.value_str().is_some()
-    }
-
-    pub fn is_meta_item_list(&self) -> bool {
-        self.meta_item_list().is_some()
     }
 }
 
@@ -1180,16 +1153,6 @@ pub enum ReprAttr {
 pub enum IntType {
     SignedInt(ast::IntTy),
     UnsignedInt(ast::UintTy),
-}
-
-impl IntType {
-    #[inline]
-    pub fn is_signed(self) -> bool {
-        match self {
-            SignedInt(..) => true,
-            UnsignedInt(..) => false,
-        }
-    }
 }
 
 impl MetaItem {

@@ -1773,28 +1773,15 @@ fn ident_continue(c: Option<char>) -> bool {
 mod tests {
     use super::*;
 
-    use crate::ast::{CrateConfig, Ident};
+    use crate::ast::Ident;
     use crate::codemap::CodeMap;
-    use crate::errors;
-    use crate::feature_gate::UnstableFeatures;
     use crate::parse::token;
     use crate::symbol::Symbol;
     use crate::syntax_pos::{BytePos, Span, NO_EXPANSION};
-    use std::cell::RefCell;
-    use std::collections::HashSet;
-    use std::io;
     use std::rc::Rc;
 
-    fn mk_sess(cm: Rc<CodeMap>) -> ParseSess {
-        let emitter = errors::emitter::EmitterWriter::new(Box::new(io::sink()), Some(cm.clone()));
-        ParseSess {
-            span_diagnostic: errors::Handler::with_emitter(true, false, Box::new(emitter)),
-            unstable_features: UnstableFeatures::from_environment(),
-            config: CrateConfig::new(),
-            included_mod_stack: RefCell::new(Vec::new()),
-            code_map: cm,
-            missing_fragment_specifiers: RefCell::new(HashSet::new()),
-        }
+    fn mk_sess() -> ParseSess {
+        ParseSess::new(FilePathMapping::empty())
     }
 
     // open a string reader for the given string
@@ -1806,7 +1793,7 @@ mod tests {
     #[test]
     fn t1() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         let mut string_reader = setup(
             &cm,
             &sh,
@@ -1859,7 +1846,7 @@ mod tests {
     #[test]
     fn doublecolonparsing() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         check_tokenization(
             setup(&cm, &sh, "a b".to_string()),
             vec![mk_ident("a"), token::Whitespace, mk_ident("b")],
@@ -1869,7 +1856,7 @@ mod tests {
     #[test]
     fn dcparsing_2() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         check_tokenization(
             setup(&cm, &sh, "a::b".to_string()),
             vec![mk_ident("a"), token::ModSep, mk_ident("b")],
@@ -1879,7 +1866,7 @@ mod tests {
     #[test]
     fn dcparsing_3() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         check_tokenization(
             setup(&cm, &sh, "a ::b".to_string()),
             vec![
@@ -1894,7 +1881,7 @@ mod tests {
     #[test]
     fn dcparsing_4() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         check_tokenization(
             setup(&cm, &sh, "a:: b".to_string()),
             vec![
@@ -1909,7 +1896,7 @@ mod tests {
     #[test]
     fn character_a() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         assert_eq!(
             setup(&cm, &sh, "'a'".to_string()).next_token().tok,
             token::Literal(token::Char(Symbol::intern("a")), None)
@@ -1919,7 +1906,7 @@ mod tests {
     #[test]
     fn character_space() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         assert_eq!(
             setup(&cm, &sh, "' '".to_string()).next_token().tok,
             token::Literal(token::Char(Symbol::intern(" ")), None)
@@ -1929,7 +1916,7 @@ mod tests {
     #[test]
     fn character_escaped() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         assert_eq!(
             setup(&cm, &sh, "'\\n'".to_string()).next_token().tok,
             token::Literal(token::Char(Symbol::intern("\\n")), None)
@@ -1939,7 +1926,7 @@ mod tests {
     #[test]
     fn lifetime_name() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         assert_eq!(
             setup(&cm, &sh, "'abc".to_string()).next_token().tok,
             token::Lifetime(Ident::from_str("'abc"))
@@ -1949,7 +1936,7 @@ mod tests {
     #[test]
     fn raw_string() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         assert_eq!(
             setup(&cm, &sh, "r###\"\"#a\\b\x00c\"\"###".to_string())
                 .next_token()
@@ -1961,7 +1948,7 @@ mod tests {
     #[test]
     fn literal_suffixes() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         macro_rules! test {
             ($input: expr, $tok_type: ident, $tok_contents: expr) => {{
                 assert_eq!(
@@ -2030,7 +2017,7 @@ mod tests {
     #[test]
     fn nested_block_comments() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         let mut lexer = setup(&cm, &sh, "/* /* */ */'a'".to_string());
         match lexer.next_token().tok {
             token::Comment => {}
@@ -2045,7 +2032,7 @@ mod tests {
     #[test]
     fn crlf_comments() {
         let cm = Rc::new(CodeMap::new(FilePathMapping::empty()));
-        let sh = mk_sess(cm.clone());
+        let sh = mk_sess();
         let mut lexer = setup(&cm, &sh, "// test\r\n/// test\r\n".to_string());
         let comment = lexer.next_token();
         assert_eq!(comment.tok, token::Comment);

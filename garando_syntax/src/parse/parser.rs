@@ -725,14 +725,10 @@ impl<'a> Parser<'a> {
             _ => Err(if self.prev_token_kind == PrevTokenKind::DocComment {
                 self.span_fatal_err(self.prev_span, Error::UselessDocComment)
             } else {
-                let mut err = self.fatal(&format!(
+                self.fatal(&format!(
                     "expected identifier, found `{}`",
                     self.this_token_to_string()
-                ));
-                if self.token == token::Underscore {
-                    err.note("`_` is a wildcard pattern, not an identifier");
-                }
-                err
+                ))
             }),
         }
     }
@@ -1214,9 +1210,6 @@ impl<'a> Parser<'a> {
     }
     pub fn bug(&self, m: &str) -> ! {
         self.sess.span_diagnostic.span_bug(self.span, m)
-    }
-    pub fn warn(&self, m: &str) {
-        self.sess.span_diagnostic.span_warn(self.span, m)
     }
     pub fn span_warn(&self, sp: Span, m: &str) {
         self.sess.span_diagnostic.span_warn(sp, m)
@@ -2461,9 +2454,7 @@ impl<'a> Parser<'a> {
                 } else if self.token.is_keyword(keywords::Let) {
                     // Catch this syntax error here, instead of in `check_strict_keywords`, so
                     // that we can explicitly mention that let is not to be used as an expression
-                    let mut db = self.fatal("expected expression, found statement (`let`)");
-                    db.note("variable declaration using `let` is a statement");
-                    return Err(db);
+                    return Err(self.fatal("expected expression, found statement (`let`)"));
                 } else if self.token.is_path_start() {
                     let pth = self.parse_path(PathStyle::Expr)?;
 
@@ -4471,9 +4462,6 @@ impl<'a> Parser<'a> {
         self.diagnostic()
             .struct_span_warn(self.span, {
                 &format!("expected `;`, found `{}`", self.this_token_to_string())
-            })
-            .note({
-                "This was erroneously allowed and will become a hard error in a future release"
             })
             .emit();
     }

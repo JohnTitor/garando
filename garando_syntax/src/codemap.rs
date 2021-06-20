@@ -12,11 +12,10 @@ pub use crate::syntax_pos::hygiene::{ExpnFormat, ExpnInfo, NameAndSpan};
 pub use crate::syntax_pos::*;
 
 use std::cell::{Ref, RefCell};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::rc::Rc;
 
 use crate::errors::CodeMapper;
-use std::env;
 use std::fs;
 use std::io::{self, Read};
 
@@ -59,9 +58,6 @@ pub trait FileLoader {
     /// Query the existence of a file.
     fn file_exists(&self, path: &Path) -> bool;
 
-    /// Return an absolute path to a file, if possible.
-    fn abs_path(&self, path: &Path) -> Option<PathBuf>;
-
     /// Read the contents of an UTF-8 file into memory.
     fn read_file(&self, path: &Path) -> io::Result<String>;
 }
@@ -72,14 +68,6 @@ pub struct RealFileLoader;
 impl FileLoader for RealFileLoader {
     fn file_exists(&self, path: &Path) -> bool {
         fs::metadata(path).is_ok()
-    }
-
-    fn abs_path(&self, path: &Path) -> Option<PathBuf> {
-        if path.is_absolute() {
-            Some(path.to_path_buf())
-        } else {
-            env::current_dir().ok().map(|cwd| cwd.join(path))
-        }
     }
 
     fn read_file(&self, path: &Path) -> io::Result<String> {
@@ -106,17 +94,6 @@ impl CodeMap {
         CodeMap {
             files: RefCell::new(Vec::new()),
             file_loader: Box::new(RealFileLoader),
-            path_mapping: path_mapping,
-        }
-    }
-
-    pub fn with_file_loader(
-        file_loader: Box<dyn FileLoader>,
-        path_mapping: FilePathMapping,
-    ) -> CodeMap {
-        CodeMap {
-            files: RefCell::new(Vec::new()),
-            file_loader: file_loader,
             path_mapping: path_mapping,
         }
     }
@@ -300,64 +277,6 @@ impl CodeMap {
             col: loc.col,
             file: Some(loc.file),
         }
-    }
-
-    /// Returns `Some(span)`, a union of the lhs and rhs span.  The lhs must precede the rhs. If
-    /// there are gaps between lhs and rhs, the resulting union will cross these gaps.
-    /// For this to work, the spans have to be:
-    ///    * the ctxt of both spans much match
-    ///    * the lhs span needs to end on the same line the rhs span begins
-    ///    * the lhs span must start at or before the rhs span
-    pub fn merge_spans(&self, sp_lhs: Span, sp_rhs: Span) -> Option<Span> {
-        use std::cmp;
-
-        // make sure we're at the same expansion id
-        if sp_lhs.ctxt != sp_rhs.ctxt {
-            return None;
-        }
-
-        let lhs_end = match self.lookup_line(sp_lhs.hi) {
-            Ok(x) => x,
-            Err(_) => return None,
-        };
-        let rhs_begin = match self.lookup_line(sp_rhs.lo) {
-            Ok(x) => x,
-            Err(_) => return None,
-        };
-
-        // if we must cross lines to merge, don't merge
-        if lhs_end.line != rhs_begin.line {
-            return None;
-        }
-
-        // ensure these follow the expected order and we don't overlap
-        if (sp_lhs.lo <= sp_rhs.lo) && (sp_lhs.hi <= sp_rhs.lo) {
-            Some(Span {
-                lo: cmp::min(sp_lhs.lo, sp_rhs.lo),
-                hi: cmp::max(sp_lhs.hi, sp_rhs.hi),
-                ctxt: sp_lhs.ctxt,
-            })
-        } else {
-            None
-        }
-    }
-
-    pub fn span_to_string(&self, sp: Span) -> String {
-        if self.files.borrow().is_empty() && sp.source_equal(&DUMMY_SP) {
-            return "no-location".to_string();
-        }
-
-        let lo = self.lookup_char_pos_adj(sp.lo);
-        let hi = self.lookup_char_pos_adj(sp.hi);
-        return (format!(
-            "{}:{}:{}: {}:{}",
-            lo.filename,
-            lo.line,
-            lo.col.to_usize() + 1,
-            hi.line,
-            hi.col.to_usize() + 1
-        ))
-        .to_string();
     }
 
     pub fn span_to_filename(&self, sp: Span) -> FileName {
@@ -571,14 +490,8 @@ impl CodeMapper for CodeMap {
     fn span_to_lines(&self, sp: Span) -> FileLinesResult {
         self.span_to_lines(sp)
     }
-    fn span_to_string(&self, sp: Span) -> String {
-        self.span_to_string(sp)
-    }
     fn span_to_filename(&self, sp: Span) -> FileName {
         self.span_to_filename(sp)
-    }
-    fn merge_spans(&self, sp_lhs: Span, sp_rhs: Span) -> Option<Span> {
-        self.merge_spans(sp_lhs, sp_rhs)
     }
 }
 
@@ -846,34 +759,6 @@ mod tests {
         let snippet = cm.span_to_snippet(span);
 
         assert_eq!(snippet, Ok("second line".to_string()));
-    }
-
-    #[test]
-    fn t9() {
-        // Test span_to_str for a span ending at the end of filemap
-        let cm = init_code_map();
-        let span = Span {
-            lo: BytePos(12),
-            hi: BytePos(23),
-            ctxt: NO_EXPANSION,
-        };
-        let sstr = cm.span_to_string(span);
-
-        assert_eq!(sstr, "blork.rs:2:1: 2:12");
-    }
-
-    /// Test failing to merge two spans on different lines
-    #[test]
-    fn span_merging_fail() {
-        let cm = CodeMap::new(FilePathMapping::empty());
-        let inputtext = "bbbb BB\ncc CCC\n";
-        let selection1 = "     ~~\n      \n";
-        let selection2 = "       \n   ~~~\n";
-        cm.new_filemap_and_lines("blork.rs", inputtext);
-        let span1 = span_from_selection(inputtext, selection1);
-        let span2 = span_from_selection(inputtext, selection2);
-
-        assert!(cm.merge_spans(span1, span2).is_none());
     }
 
     /// Returns the span corresponding to the `n`th occurrence of

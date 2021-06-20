@@ -71,14 +71,6 @@ impl<T> SmallVector<T> {
         SmallVector { repr: Many(vs) }
     }
 
-    pub fn as_slice(&self) -> &[T] {
-        self
-    }
-
-    pub fn as_mut_slice(&mut self) -> &mut [T] {
-        self
-    }
-
     pub fn pop(&mut self) -> Option<T> {
         match self.repr {
             Zero => None,
@@ -107,20 +99,6 @@ impl<T> SmallVector<T> {
         }
     }
 
-    pub fn push_all(&mut self, other: SmallVector<T>) {
-        for v in other.into_iter() {
-            self.push(v);
-        }
-    }
-
-    pub fn get(&self, idx: usize) -> &T {
-        match self.repr {
-            One(ref v) if idx == 0 => v,
-            Many(ref vs) => &vs[idx],
-            _ => panic!("out of bounds access"),
-        }
-    }
-
     pub fn expect_one(self, err: &'static str) -> T {
         match self.repr {
             One(v) => v,
@@ -145,15 +123,6 @@ impl<T> SmallVector<T> {
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
-    }
-
-    pub fn map<U, F: FnMut(T) -> U>(self, mut f: F) -> SmallVector<U> {
-        let repr = match self.repr {
-            Zero => Zero,
-            One(t) => One(f(t)),
-            Many(vec) => Many(vec.into_iter().map(f).collect()),
-        };
-        SmallVector { repr: repr }
     }
 }
 

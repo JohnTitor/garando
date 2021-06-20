@@ -4,7 +4,6 @@ use crate::abi::{self, Abi};
 use crate::ast::Attribute;
 use crate::ast::{self, BlockCheckMode, PatKind, RangeEnd};
 use crate::ast::{RegionTyParamBound, SelfKind, TraitBoundModifier, TraitTyParamBound};
-use crate::attr;
 use crate::codemap::{self, CodeMap};
 use crate::parse::lexer::comments;
 use crate::parse::token::{self, BinOpToken, Token};
@@ -13,9 +12,7 @@ use crate::print::pp::Breaks::{Consistent, Inconsistent};
 use crate::print::pp::{self, break_offset, hardbreak, space, word, zerobreak};
 use crate::print::pp::{eof, Breaks};
 use crate::ptr::P;
-use crate::std_inject;
-use crate::symbol::{keywords, Symbol};
-use crate::syntax_pos::DUMMY_SP;
+use crate::symbol::keywords;
 use crate::syntax_pos::{self, BytePos};
 use crate::tokenstream::{self, TokenStream, TokenTree};
 use crate::util::parser::AssocOp;
@@ -87,44 +84,6 @@ pub fn rust_printer_annotated<'a>(writer: Box<dyn Write + 'a>, ann: &'a dyn PpAn
 pub const INDENT_UNIT: usize = 4;
 
 pub const DEFAULT_COLUMNS: usize = 78;
-
-/// Requires you to pass an input filename and reader so that
-/// it can scan the input text for comments and literals to
-/// copy forward.
-pub fn print_crate<'a>(
-    cm: &'a CodeMap,
-    sess: &ParseSess,
-    krate: &ast::Crate,
-    filename: String,
-    input: &mut dyn Read,
-    out: Box<dyn Write + 'a>,
-    ann: &'a dyn PpAnn,
-    is_expanded: bool,
-) -> io::Result<()> {
-    let mut s = State::new_from_input(cm, sess, filename, input, out, ann, is_expanded);
-
-    if is_expanded && !std_inject::injected_crate_name(krate).is_none() {
-        // We need to print `#![no_std]` (and its feature gate) so that
-        // compiling pretty-printed source won't inject libstd again.
-        // However we don't want these attributes in the AST because
-        // of the feature gate, so we fake them up here.
-
-        // #![feature(prelude_import)]
-        let prelude_import_meta = attr::mk_list_word_item(Symbol::intern("prelude_import"));
-        let list = attr::mk_list_item(Symbol::intern("feature"), vec![prelude_import_meta]);
-        let fake_attr = attr::mk_attr_inner(DUMMY_SP, attr::mk_attr_id(), list);
-        s.print_attribute(&fake_attr)?;
-
-        // #![no_std]
-        let no_std_meta = attr::mk_word_item(Symbol::intern("no_std"));
-        let fake_attr = attr::mk_attr_inner(DUMMY_SP, attr::mk_attr_id(), no_std_meta);
-        s.print_attribute(&fake_attr)?;
-    }
-
-    s.print_mod(&krate.module, &krate.attrs)?;
-    s.print_remaining_comments()?;
-    eof(&mut s.s)
-}
 
 impl<'a> State<'a> {
     pub fn new_from_input(
@@ -305,10 +264,6 @@ pub fn ty_to_string(ty: &ast::Ty) -> String {
     to_string(|s| s.print_type(ty))
 }
 
-pub fn bounds_to_string(bounds: &[ast::TyParamBound]) -> String {
-    to_string(|s| s.print_bounds("", bounds))
-}
-
 pub fn pat_to_string(pat: &ast::Pat) -> String {
     to_string(|s| s.print_pat(pat))
 }
@@ -341,10 +296,6 @@ pub fn stmt_to_string(stmt: &ast::Stmt) -> String {
     to_string(|s| s.print_stmt(stmt))
 }
 
-pub fn attr_to_string(attr: &ast::Attribute) -> String {
-    to_string(|s| s.print_attribute(attr))
-}
-
 pub fn item_to_string(i: &ast::Item) -> String {
     to_string(|s| s.print_item(i))
 }
@@ -365,10 +316,6 @@ pub fn where_clause_to_string(i: &ast::WhereClause) -> String {
     to_string(|s| s.print_where_clause(i))
 }
 
-pub fn fn_block_to_string(p: &ast::FnDecl) -> String {
-    to_string(|s| s.print_fn_block_args(p))
-}
-
 pub fn path_to_string(p: &ast::Path) -> String {
     to_string(|s| s.print_path(p, false, 0, false))
 }
@@ -381,29 +328,6 @@ pub fn vis_to_string(v: &ast::Visibility) -> String {
     to_string(|s| s.print_visibility(v))
 }
 
-pub fn fun_to_string(
-    decl: &ast::FnDecl,
-    unsafety: ast::Unsafety,
-    constness: ast::Constness,
-    name: ast::Ident,
-    generics: &ast::Generics,
-) -> String {
-    to_string(|s| {
-        s.head("")?;
-        s.print_fn(
-            decl,
-            unsafety,
-            constness,
-            Abi::Rust,
-            Some(name),
-            generics,
-            &ast::Visibility::Inherited,
-        )?;
-        s.end()?; // Close the head box
-        s.end() // Close the outer box
-    })
-}
-
 pub fn block_to_string(blk: &ast::Block) -> String {
     to_string(|s| {
         // containing cbox, will be closed by print-block at }
@@ -414,32 +338,12 @@ pub fn block_to_string(blk: &ast::Block) -> String {
     })
 }
 
-pub fn meta_list_item_to_string(li: &ast::NestedMetaItem) -> String {
-    to_string(|s| s.print_meta_list_item(li))
-}
-
 pub fn meta_item_to_string(mi: &ast::MetaItem) -> String {
     to_string(|s| s.print_meta_item(mi))
 }
 
-pub fn attribute_to_string(attr: &ast::Attribute) -> String {
-    to_string(|s| s.print_attribute(attr))
-}
-
-pub fn lit_to_string(l: &ast::Lit) -> String {
-    to_string(|s| s.print_literal(l))
-}
-
-pub fn variant_to_string(var: &ast::Variant) -> String {
-    to_string(|s| s.print_variant(var))
-}
-
 pub fn arg_to_string(arg: &ast::Arg) -> String {
     to_string(|s| s.print_arg(arg, false))
-}
-
-pub fn mac_to_string(arg: &ast::Mac) -> String {
-    to_string(|s| s.print_mac(arg, crate::parse::token::Paren))
 }
 
 pub fn visibility_qualified(vis: &ast::Visibility, s: &str) -> String {
@@ -3116,54 +3020,4 @@ impl<'a> State<'a> {
 
 fn repeat(s: &str, n: usize) -> String {
     iter::repeat(s).take(n).collect()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use crate::ast;
-    use crate::codemap;
-    use crate::syntax_pos;
-
-    #[test]
-    fn test_fun_to_string() {
-        let abba_ident = ast::Ident::from_str("abba");
-
-        let decl = ast::FnDecl {
-            inputs: Vec::new(),
-            output: ast::FunctionRetTy::Default(syntax_pos::DUMMY_SP),
-            variadic: false,
-        };
-        let generics = ast::Generics::default();
-        assert_eq!(
-            fun_to_string(
-                &decl,
-                ast::Unsafety::Normal,
-                ast::Constness::NotConst,
-                abba_ident,
-                &generics
-            ),
-            "fn abba()"
-        );
-    }
-
-    #[test]
-    fn test_variant_to_string() {
-        let ident = ast::Ident::from_str("principal_skinner");
-
-        let var = codemap::respan(
-            syntax_pos::DUMMY_SP,
-            ast::Variant_ {
-                name: ident,
-                attrs: Vec::new(),
-                // making this up as I go.... ?
-                data: ast::VariantData::Unit(ast::DUMMY_NODE_ID),
-                disr_expr: None,
-            },
-        );
-
-        let varstr = variant_to_string(&var);
-        assert_eq!(varstr, "principal_skinner");
-    }
 }

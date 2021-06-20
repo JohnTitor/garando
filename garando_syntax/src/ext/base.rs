@@ -584,31 +584,6 @@ pub enum SyntaxExtension {
     ),
 }
 
-impl SyntaxExtension {
-    /// Return which kind of macro calls this syntax extension.
-    pub fn kind(&self) -> MacroKind {
-        match *self {
-            SyntaxExtension::DeclMacro(..)
-            | SyntaxExtension::NormalTT(..)
-            | SyntaxExtension::IdentTT(..)
-            | SyntaxExtension::ProcMacro(..) => MacroKind::Bang,
-            SyntaxExtension::MultiDecorator(..)
-            | SyntaxExtension::MultiModifier(..)
-            | SyntaxExtension::AttrProcMacro(..) => MacroKind::Attr,
-            SyntaxExtension::ProcMacroDerive(..) | SyntaxExtension::BuiltinDerive(..) => {
-                MacroKind::Derive
-            }
-        }
-    }
-
-    pub fn is_modern(&self) -> bool {
-        match *self {
-            SyntaxExtension::DeclMacro(..) => true,
-            _ => false,
-        }
-    }
-}
-
 pub type NamedSyntaxExtension = (Name, SyntaxExtension);
 
 pub trait Resolver {
@@ -836,21 +811,15 @@ impl<'a> ExtCtxt<'a> {
     pub fn span_warn(&self, sp: Span, msg: &str) {
         self.parse_sess.span_diagnostic.span_warn(sp, msg);
     }
-    pub fn span_unimpl(&self, sp: Span, msg: &str) -> ! {
-        self.parse_sess.span_diagnostic.span_unimpl(sp, msg);
-    }
     pub fn span_bug(&self, sp: Span, msg: &str) -> ! {
         self.parse_sess.span_diagnostic.span_bug(sp, msg);
     }
     pub fn trace_macros_diag(&self) {
-        for (sp, notes) in self.expansions.iter() {
+        for (sp, _) in self.expansions.iter() {
             let mut db = self
                 .parse_sess
                 .span_diagnostic
                 .span_note_diag(*sp, "trace_macro");
-            for note in notes {
-                db.note(note);
-            }
             db.emit();
         }
     }

@@ -1874,7 +1874,7 @@ impl MutexFeatureChecker {
                 .struct_span_err(
                     pm_span,
                     "Cannot use `#![feature(proc_macro)]` and \
-                                              `#![feature(custom_attribute)] at the same time",
+                         `#![feature(custom_attribute)]` at the same time",
                 )
                 .span_note(ca_span, "`#![feature(custom_attribute)]` declared here")
                 .emit();

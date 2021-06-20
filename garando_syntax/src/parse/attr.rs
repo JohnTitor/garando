@@ -43,12 +43,7 @@ impl<'a> Parser<'a> {
                 token::DocComment(s) => {
                     let attr = attr::mk_sugared_doc_attr(attr::mk_attr_id(), s, self.span);
                     if attr.style != ast::AttrStyle::Outer {
-                        let mut err = self.fatal("expected outer doc comment");
-                        err.note(
-                            "inner doc comments like this (starting with \
-                                  `//!` or `/*!`) can only appear before items",
-                        );
-                        return Err(err);
+                        return Err(self.fatal("expected outer doc comment"));
                     }
                     attrs.push(attr);
                     self.bump();
@@ -101,16 +96,7 @@ impl<'a> Parser<'a> {
                     self.bump();
                     if let InnerAttributeParsePolicy::NotPermitted { reason } = inner_parse_policy {
                         let span = self.span;
-                        self.diagnostic()
-                            .struct_span_err(span, reason)
-                            .note(
-                                "inner attributes and doc comments, like `#![no_std]` or \
-                                   `//! My crate`, annotate the item enclosing them, and are \
-                                   usually found at the beginning of source files. Outer \
-                                   attributes and doc comments, like `#[test]` and
-                                   `/// My function`, annotate the item following them.",
-                            )
-                            .emit()
+                        self.diagnostic().struct_span_err(span, reason).emit()
                     }
                     ast::AttrStyle::Inner
                 } else {
