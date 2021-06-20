@@ -218,10 +218,6 @@ impl NodeId {
     pub fn placeholder_from_mark(mark: Mark) -> Self {
         NodeId(mark.as_u32())
     }
-
-    pub fn placeholder_to_mark(self) -> Mark {
-        Mark::from_u32(self.0)
-    }
 }
 
 impl fmt::Display for NodeId {
@@ -297,14 +293,6 @@ impl Generics {
     }
     pub fn is_parameterized(&self) -> bool {
         self.is_lt_parameterized() || self.is_type_parameterized()
-    }
-    pub fn span_for_name(&self, name: &str) -> Option<Span> {
-        for t in &self.ty_params {
-            if t.ident.name == name {
-                return Some(t.span);
-            }
-        }
-        None
     }
 }
 

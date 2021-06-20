@@ -843,14 +843,11 @@ impl<'a> ExtCtxt<'a> {
         self.parse_sess.span_diagnostic.span_bug(sp, msg);
     }
     pub fn trace_macros_diag(&self) {
-        for (sp, notes) in self.expansions.iter() {
+        for (sp, _) in self.expansions.iter() {
             let mut db = self
                 .parse_sess
                 .span_diagnostic
                 .span_note_diag(*sp, "trace_macro");
-            for note in notes {
-                db.note(note);
-            }
             db.emit();
         }
     }

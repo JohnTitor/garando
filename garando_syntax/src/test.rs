@@ -433,10 +433,6 @@ fn should_panic(i: &ast::Item, cx: &TestCtxt) -> ShouldPanic {
                      `#[should_panic]` or \
                      `#[should_panic(expected = \"error message\")]`",
                 )
-                .note(
-                    "Errors in this attribute were erroneously allowed \
-                        and will become a hard error in a future release.",
-                )
                 .emit();
                 return ShouldPanic::Yes(None);
             }
@@ -455,11 +451,6 @@ fn should_panic(i: &ast::Item, cx: &TestCtxt) -> ShouldPanic {
                             attr.span(),
                             "argument must be of the form: \
                              `expected = \"error message\"`",
-                        )
-                        .note(
-                            "Errors in this attribute were erroneously \
-                                allowed and will become a hard error in a \
-                                future release.",
                         )
                         .emit();
                         ShouldPanic::Yes(None)

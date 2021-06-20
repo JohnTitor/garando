@@ -53,7 +53,6 @@ pub mod diagnostic_list;
 pub mod util {
     pub mod lev_distance;
     pub mod move_map;
-    pub mod node_count;
     pub mod parser;
     #[cfg(test)]
     pub mod parser_testing;
