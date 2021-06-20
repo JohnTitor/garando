@@ -254,7 +254,7 @@ fn read_block_comment(rdr: &mut StringReader, code_to_the_left: bool, comments: 
         while level > 0 {
             debug!("=== block comment level {}", level);
             if rdr.is_eof() {
-                panic!(rdr.fatal("unterminated block comment"));
+                panic!("{}", rdr.fatal("unterminated block comment"));
             }
             if rdr.ch_is('\n') {
                 trim_whitespace_prefix_and_push_line(&mut lines, curr_line, col);

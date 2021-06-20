@@ -421,7 +421,7 @@ impl<'a, 'b> MacroExpander<'a, 'b> {
                 suggested_limit
             ));
             err.emit();
-            panic!(FatalError);
+            panic!("{}", FatalError);
         }
 
         result

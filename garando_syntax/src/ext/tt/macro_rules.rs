@@ -218,12 +218,12 @@ pub fn compile(sess: &ParseSess, features: &RefCell<Features>, def: &ast::Item) 
         Success(m) => m,
         Failure(sp, tok) => {
             let s = parse_failure_msg(tok);
-            panic!(sess
+            panic!("{}", sess
                 .span_diagnostic
                 .span_fatal(sp.substitute_dummy(def.span), &s));
         }
         Error(sp, s) => {
-            panic!(sess
+            panic!("{}", sess
                 .span_diagnostic
                 .span_fatal(sp.substitute_dummy(def.span), &s));
         }
@@ -948,6 +948,7 @@ fn quoted_tt_to_string(tt: &quoted::TokenTree) -> String {
         quoted::TokenTree::Token(_, ref tok) => crate::print::pprust::token_to_string(tok),
         quoted::TokenTree::MetaVarDecl(_, name, kind) => format!("${}:{}", name, kind),
         _ => panic!(
+            "{}",
             "unexpected quoted::TokenTree::{{Sequence or Delimited}} \
                      in follow set checker"
         ),

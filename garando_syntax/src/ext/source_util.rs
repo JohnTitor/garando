@@ -117,7 +117,7 @@ pub fn expand_include<'cx>(
             while self.p.token != token::Eof {
                 match panictry!(self.p.parse_item()) {
                     Some(item) => ret.push(item),
-                    None => panic!(self.p.diagnostic().span_fatal(
+                    None => panic!("{}", self.p.diagnostic().span_fatal(
                         self.p.span,
                         &format!("expected item, found `{}`", self.p.this_token_to_string())
                     )),

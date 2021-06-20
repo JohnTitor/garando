@@ -409,7 +409,7 @@ impl Handler {
     }
     pub fn span_bug<S: Into<MultiSpan>>(&self, sp: S, msg: &str) -> ! {
         self.emit(&sp.into(), msg, Bug);
-        panic!(ExplicitBug);
+        panic!("{}", ExplicitBug);
     }
     pub fn delay_span_bug<S: Into<MultiSpan>>(&self, sp: S, msg: &str) {
         if self.treat_err_as_bug {
@@ -458,7 +458,7 @@ impl Handler {
     pub fn bug(&self, msg: &str) -> ! {
         let mut db = DiagnosticBuilder::new(self, Bug, msg);
         db.emit();
-        panic!(ExplicitBug);
+        panic!("{}", ExplicitBug);
     }
     pub fn unimpl(&self, msg: &str) -> ! {
         self.bug(&format!("unimplemented {}", msg));
@@ -492,7 +492,7 @@ impl Handler {
             _ => s = "aborting due to previous error(s)".to_string(),
         }
 
-        panic!(self.fatal(&s));
+        panic!("{}", self.fatal(&s));
     }
     pub fn emit(&self, msp: &MultiSpan, msg: &str, lvl: Level) {
         if lvl == Warning && !self.can_emit_warnings {

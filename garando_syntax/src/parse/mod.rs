@@ -215,8 +215,8 @@ fn file_to_filemap(sess: &ParseSess, path: &Path, spanopt: Option<Span>) -> Rc<F
         Err(e) => {
             let msg = format!("couldn't read {:?}: {}", path.display(), e);
             match spanopt {
-                Some(sp) => panic!(sess.span_diagnostic.span_fatal(sp, &msg)),
-                None => panic!(sess.span_diagnostic.fatal(&msg)),
+                Some(sp) => panic!("{}", sess.span_diagnostic.span_fatal(sp, &msg)),
+                None => panic!("{}", sess.span_diagnostic.fatal(&msg)),
             }
         }
     }
@@ -483,12 +483,12 @@ pub fn byte_lit(lit: &str) -> (u8, usize) {
             _ => match u64::from_str_radix(&lit[2..4], 16).ok() {
                 Some(c) => {
                     if c > 0xFF {
-                        panic!(err(2))
+                        panic!("{}", err(2))
                     } else {
                         return (c as u8, 4);
                     }
                 }
-                None => panic!(err(3)),
+                None => panic!("{}", err(3)),
             },
         };
         (b, 2)

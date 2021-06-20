@@ -822,7 +822,7 @@ impl<'a> ExtCtxt<'a> {
     ///   substitute; we never hit resolve/type-checking so the dummy
     ///   value doesn't have to match anything)
     pub fn span_fatal(&self, sp: Span, msg: &str) -> ! {
-        panic!(self.parse_sess.span_diagnostic.span_fatal(sp, msg));
+        panic!("{}", self.parse_sess.span_diagnostic.span_fatal(sp, msg));
     }
 
     /// Emit `msg` attached to `sp`, without immediately stopping
