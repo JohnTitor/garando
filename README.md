@@ -1,13 +1,7 @@
 garando, Rust syntax backport
 ====================
 
-| Environment | Build status |
-| -- | -- |
-| Linux | ![CI (Linux)](https://github.com/JohnTitor/garando/workflows/CI%20(Linux)/badge.svg) |
-| macOS | ![CI (macOS)](https://github.com/JohnTitor/garando/workflows/CI%20(macOS)/badge.svg) |
-| Windows | ![CI (Windows)](https://github.com/JohnTitor/garando/workflows/CI%20(Windows)/badge.svg) |
-
-[![Latest Version](https://img.shields.io/crates/v/garando_syntax.svg)](https://crates.io/crates/garando_syntax)
+[![CI](https://github.com/JohnTitor/garando/actions/workflows/ci.yml/badge.svg)](https://github.com/JohnTitor/garando/actions/workflows/ci.yml) [![Latest Version](https://img.shields.io/crates/v/garando_syntax.svg)](https://crates.io/crates/garando_syntax)
 
 This repository contains a backport of the following unstable crates from the
 Rust compiler.
