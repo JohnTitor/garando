@@ -216,14 +216,18 @@ pub fn compile(sess: &ParseSess, def: &ast::Item) -> SyntaxExtension {
         Success(m) => m,
         Failure(sp, tok) => {
             let s = parse_failure_msg(tok);
-            panic!("{}", sess
-                .span_diagnostic
-                .span_fatal(sp.substitute_dummy(def.span), &s));
+            panic!(
+                "{}",
+                sess.span_diagnostic
+                    .span_fatal(sp.substitute_dummy(def.span), &s)
+            );
         }
         Error(sp, s) => {
-            panic!("{}", sess
-                .span_diagnostic
-                .span_fatal(sp.substitute_dummy(def.span), &s));
+            panic!(
+                "{}",
+                sess.span_diagnostic
+                    .span_fatal(sp.substitute_dummy(def.span), &s)
+            );
         }
     };
 
@@ -292,10 +296,7 @@ pub fn compile(sess: &ParseSess, def: &ast::Item) -> SyntaxExtension {
     }
 }
 
-fn check_lhs_nt_follows(
-    sess: &ParseSess,
-    lhs: &quoted::TokenTree,
-) -> bool {
+fn check_lhs_nt_follows(sess: &ParseSess, lhs: &quoted::TokenTree) -> bool {
     // lhs is going to be like TokenTree::Delimited(...), where the
     // entire lhs is those tts. Or, it can be a "bare sequence", not wrapped in parens.
     if let quoted::TokenTree::Delimited(_, ref tts) = *lhs {
@@ -354,10 +355,7 @@ fn check_rhs(sess: &ParseSess, rhs: &quoted::TokenTree) -> bool {
     false
 }
 
-fn check_matcher(
-    sess: &ParseSess,
-    matcher: &[quoted::TokenTree],
-) -> bool {
+fn check_matcher(sess: &ParseSess, matcher: &[quoted::TokenTree]) -> bool {
     let first_sets = FirstSets::new(matcher);
     let empty_suffix = TokenSet::empty();
     let err = sess.span_diagnostic.err_count();
@@ -896,9 +894,7 @@ fn is_in_follow(tok: &quoted::TokenTree, frag: &str) -> Result<bool, (String, &'
     }
 }
 
-fn has_legal_fragment_specifier(
-    tok: &quoted::TokenTree,
-) -> Result<(), String> {
+fn has_legal_fragment_specifier(tok: &quoted::TokenTree) -> Result<(), String> {
     debug!("has_legal_fragment_specifier({:?})", tok);
     if let quoted::TokenTree::MetaVarDecl(_, _, ref frag_spec) = *tok {
         let frag_name = frag_spec.name.as_str();
@@ -909,9 +905,7 @@ fn has_legal_fragment_specifier(
     Ok(())
 }
 
-fn is_legal_fragment_specifier(
-    frag_name: &str,
-) -> bool {
+fn is_legal_fragment_specifier(frag_name: &str) -> bool {
     match frag_name {
         "item" | "block" | "stmt" | "expr" | "pat" | "path" | "ty" | "ident" | "meta" | "tt"
         | "vis" | "" => true,
