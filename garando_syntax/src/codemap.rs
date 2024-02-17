@@ -15,10 +15,10 @@ use std::cell::{Ref, RefCell};
 use std::path::Path;
 use std::rc::Rc;
 
-use crate::errors::CodeMapper;
 use std::fs;
 use std::io::{self, Read};
 
+use garando_errors::CodeMapper;
 use log::debug;
 use serde::{Deserialize, Serialize};
 
@@ -492,6 +492,12 @@ impl CodeMapper for CodeMap {
     }
     fn span_to_filename(&self, sp: Span) -> FileName {
         self.span_to_filename(sp)
+    }
+    fn span_to_string(&self, sp: Span) -> String {
+        self.span_to_snippet(sp).unwrap()
+    }
+    fn merge_spans(&self, sp_lhs: Span, sp_rhs: Span) -> Option<Span> {
+        todo!()
     }
 }
 

@@ -70,6 +70,8 @@ pub trait CodeMapper {
     fn lookup_char_pos(&self, pos: BytePos) -> Loc;
     fn span_to_lines(&self, sp: Span) -> FileLinesResult;
     fn span_to_filename(&self, sp: Span) -> FileName;
+    fn span_to_string(&self, sp: Span) -> String;
+    fn merge_spans(&self, sp_lhs: Span, sp_rhs: Span) -> Option<Span>;
 }
 
 impl CodeSuggestion {
